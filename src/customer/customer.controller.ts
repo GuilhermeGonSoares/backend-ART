@@ -1,7 +1,16 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dtos/create-customer.dto';
 import { ReturnCustomerDto } from './dtos/return-customer.dto';
+import { UpdateCustomerDto } from './dtos/update-customer.dto';
 
 @Controller('customer')
 export class CustomerController {
@@ -26,7 +35,22 @@ export class CustomerController {
   @Get(':cnpj')
   async showCustomer(@Param('cnpj') cnpj: string): Promise<ReturnCustomerDto> {
     return new ReturnCustomerDto(
-      await this.customerService.findCustomerByCnpj(cnpj),
+      await this.customerService.findCustomerBy('cnpj', cnpj),
     );
+  }
+
+  @Put(':cnpj')
+  async updateCustomer(
+    @Param('cnpj') cnpj: string,
+    @Body() updateCustomerDto: UpdateCustomerDto,
+  ) {
+    return new ReturnCustomerDto(
+      await this.customerService.update(cnpj, updateCustomerDto),
+    );
+  }
+
+  @Delete(':cnpj')
+  async deleteCustomer(@Param('cnpj') cnpj: string) {
+    return new ReturnCustomerDto(await this.customerService.delete(cnpj));
   }
 }

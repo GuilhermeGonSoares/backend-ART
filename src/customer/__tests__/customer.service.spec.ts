@@ -5,6 +5,8 @@ import { CustomerEntity } from '../entities/customer.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CustomerMock } from '../__mocks__/customer.mock';
 import { CreateCustomerMock } from '../__mocks__/create-customer.mock';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { UpdateCustomerDto } from '../dtos/update-customer.dto';
 
 describe('CustomerService', () => {
   let service: CustomerService;
@@ -24,6 +26,7 @@ describe('CustomerService', () => {
             find: jest.fn().mockReturnValue([CustomerMock]),
             findOne: jest.fn().mockReturnValue(CustomerMock),
             save: jest.fn().mockReturnValue(CustomerMock),
+            remove: jest.fn().mockReturnValue(CustomerMock),
           },
         },
       ],
@@ -56,7 +59,7 @@ describe('CustomerService', () => {
   });
 
   it('should return customer by cnpj', async () => {
-    const customer = await service.findCustomerByCnpj(CustomerMock.cnpj);
+    const customer = await service.findCustomerBy('cnpj', CustomerMock.cnpj);
 
     expect(customer).toEqual(CustomerMock);
   });
@@ -64,7 +67,7 @@ describe('CustomerService', () => {
   it('should return error with not exist customer with cnpj', async () => {
     jest.spyOn(repository, 'findOne').mockReturnValue(undefined);
     expect(
-      service.findCustomerByCnpj(CustomerMock.cnpj),
+      service.findCustomerBy('cnpj', CustomerMock.cnpj),
     ).rejects.toThrowError();
   });
 
@@ -77,5 +80,44 @@ describe('CustomerService', () => {
 
   it('should return error with already exist customer with cnpj or email', async () => {
     expect(service.create(CreateCustomerMock)).rejects.toThrowError();
+  });
+
+  it('should update customer', async () => {
+    const updateCustomerDto: UpdateCustomerDto = {
+      financeEmail: CustomerMock.financeEmail,
+    };
+    const saveSpy = jest.spyOn(repository, 'save');
+
+    const customer = await service.update(CustomerMock.cnpj, updateCustomerDto);
+
+    expect(customer).toEqual(CustomerMock);
+    expect(saveSpy).toBeCalledWith({ ...CustomerMock, ...updateCustomerDto });
+  });
+
+  it('should throw BadRequestException if customer with updated email already exists', async () => {
+    const updateCustomerDto: UpdateCustomerDto = {
+      financeEmail: 'existing-email@example.com',
+    };
+    jest.spyOn(service, 'findCustomerBy').mockResolvedValue(CustomerMock);
+
+    await expect(
+      service.update(CustomerMock.cnpj, updateCustomerDto),
+    ).rejects.toThrowError(BadRequestException);
+  });
+
+  it('should delete customer', async () => {
+    const removeSpy = jest.spyOn(repository, 'remove');
+    const customer = await service.delete(CustomerMock.cnpj);
+
+    expect(customer).toEqual(CustomerMock);
+    expect(removeSpy).toBeCalledWith(CustomerMock);
+  });
+
+  it('should throw NotFoundException if customer is not found', async () => {
+    jest.spyOn(repository, 'findOne').mockReturnValue(undefined);
+
+    await expect(service.delete(CustomerMock.cnpj)).rejects.toThrowError(
+      NotFoundException,
+    );
   });
 });

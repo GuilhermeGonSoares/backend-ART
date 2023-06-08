@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CustomerEntity } from './entities/customer.entity';
 import { Repository } from 'typeorm';
 import { CreateCustomerDto } from './dtos/create-customer.dto';
+import { UpdateCustomerDto } from './dtos/update-customer.dto';
 
 @Injectable()
 export class CustomerService {
@@ -32,11 +33,14 @@ export class CustomerService {
     return await this.repository.find();
   }
 
-  async findCustomerByCnpj(cnpj: string): Promise<CustomerEntity> {
-    const customer = await this.repository.findOne({ where: { cnpj } });
+  async findCustomerBy<k extends keyof CustomerEntity>(
+    key: k,
+    value: CustomerEntity[k],
+  ): Promise<CustomerEntity> {
+    const customer = await this.repository.findOne({ where: { [key]: value } });
 
     if (!customer) {
-      throw new NotFoundException(`Not found customer with cnpj: ${cnpj}`);
+      throw new NotFoundException(`Not found customer with ${[key]}: ${value}`);
     }
 
     return customer;
@@ -53,5 +57,33 @@ export class CustomerService {
         email,
       })
       .getMany();
+  }
+
+  async update(
+    cnpj: string,
+    updateCustomerDto: UpdateCustomerDto,
+  ): Promise<CustomerEntity> {
+    const customer = await this.findCustomerBy('cnpj', cnpj);
+    const { financeEmail } = updateCustomerDto;
+
+    if (financeEmail && financeEmail !== customer.financeEmail) {
+      const customer = await this.findCustomerBy(
+        'financeEmail',
+        financeEmail,
+      ).catch(() => undefined);
+
+      if (customer) {
+        throw new BadRequestException(
+          `Already exist customer with this email: ${financeEmail}`,
+        );
+      }
+    }
+    return await this.repository.save({ ...customer, ...updateCustomerDto });
+  }
+
+  async delete(cnpj: string): Promise<CustomerEntity> {
+    const customer = await this.findCustomerBy('cnpj', cnpj);
+
+    return await this.repository.remove(customer);
   }
 }
