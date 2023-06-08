@@ -21,13 +21,19 @@ export class SubscriptionEntity {
   @Column({ name: 'product_id' })
   productId: number;
 
-  @Column({ type: 'bool' })
+  @Column({ type: 'bool', default: true })
   active: boolean;
 
-  @Column()
+  @Column({ nullable: true, name: 'alocated_designer' })
+  alocatedDesigner: string;
+
+  @Column({ nullable: true, name: 'alocated_ads' })
+  alocatedAds: string;
+
+  @Column({ default: 0 })
   discount: number;
 
-  @Column({ name: 'extra_costs' })
+  @Column({ name: 'extra_costs', default: 0 })
   extraCosts: number;
 
   @Column({ name: 'preferred_due_date' })
