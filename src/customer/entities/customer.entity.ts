@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { SubscriptionEntity } from '../../subscription/entities/subscription.entity';
 
 @Entity({ name: 'customers' })
 export class CustomerEntity {
@@ -37,4 +39,9 @@ export class CustomerEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  //Relationship
+
+  @OneToMany(() => SubscriptionEntity, (subscription) => subscription.customer)
+  subscriptions?: SubscriptionEntity[];
 }

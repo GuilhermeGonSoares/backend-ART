@@ -2,10 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ProductType } from '../../enums/product.enum';
+import { SubscriptionEntity } from '../../subscription/entities/subscription.entity';
 
 @Entity({ name: 'products' })
 export class ProductEntity {
@@ -32,4 +34,9 @@ export class ProductEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  //Relationship
+
+  @OneToMany(() => SubscriptionEntity, (subscription) => subscription.product)
+  subscriptions?: SubscriptionEntity[];
 }
