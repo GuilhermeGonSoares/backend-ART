@@ -5,6 +5,7 @@ import { typeOrmConfigAsync } from './config/database';
 import { CustomerModule } from './customer/customer.module';
 import { ProductModule } from './product/product.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { ChargeModule } from './charge/charge.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     CustomerModule,
     ProductModule,
     SubscriptionModule,
+    ChargeModule,
   ],
   controllers: [],
   providers: [],

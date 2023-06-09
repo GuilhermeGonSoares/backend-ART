@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { SubscriptionEntity } from '../../subscription/entities/subscription.entity';
+import { ChargeEntity } from '../../charge/entities/charge.entity';
 
 @Entity({ name: 'customers' })
 export class CustomerEntity {
@@ -44,4 +45,7 @@ export class CustomerEntity {
 
   @OneToMany(() => SubscriptionEntity, (subscription) => subscription.customer)
   subscriptions?: SubscriptionEntity[];
+
+  @OneToMany(() => ChargeEntity, (charge) => charge.customer)
+  charges?: ChargeEntity[];
 }

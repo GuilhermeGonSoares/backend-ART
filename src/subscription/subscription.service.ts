@@ -48,7 +48,10 @@ export class SubscriptionService {
       );
     }
 
-    return await this.repository.save({ ...subscriptionDto });
+    return await this.repository.save({
+      ...subscriptionDto,
+      price: product.price,
+    });
   }
 
   async list(): Promise<SubscriptionEntity[]> {
@@ -93,7 +96,6 @@ export class SubscriptionService {
           () => undefined,
         ),
       ]);
-
       if (subscription) {
         throw new BadRequestException(
           `This customer id: ${newCustomerId} already has an active subscription`,

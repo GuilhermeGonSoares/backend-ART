@@ -9,6 +9,7 @@ export class ReturnSubscriptionDto {
   private active: boolean;
   private alocatedDesigner: string;
   private alocatedAds: string;
+  private price: number;
   private discount: number;
   private extraCosts: number;
   private preferredDueDate: number;
@@ -26,6 +27,7 @@ export class ReturnSubscriptionDto {
     this.active = subscription.active;
     this.alocatedDesigner = subscription.alocatedDesigner;
     this.alocatedAds = subscription.alocatedAds;
+    this.price = subscription.price;
     this.discount = subscription.discount;
     this.extraCosts = subscription.extraCosts;
     this.preferredDueDate = subscription.preferredDueDate;

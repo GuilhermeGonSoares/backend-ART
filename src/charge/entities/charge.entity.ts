@@ -7,46 +7,39 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { PaymentType } from '../../enums/payment.enum';
+import { PaymentStatus } from '../../enums/payment-status.enum';
 import { CustomerEntity } from '../../customer/entities/customer.entity';
 import { ProductEntity } from '../../product/entities/product.entity';
 
-@Entity({ name: 'subscriptions' })
-export class SubscriptionEntity {
+@Entity({ name: 'charges' })
+export class ChargeEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column({ name: 'customer_id' })
   customerId: string;
 
-  @Column({ name: 'product_id' })
+  @Column({ name: 'product_id', nullable: true })
   productId: number;
-
-  @Column({ type: 'bool', default: true })
-  active: boolean;
-
-  @Column({ nullable: true, name: 'alocated_designer' })
-  alocatedDesigner: string;
-
-  @Column({ nullable: true, name: 'alocated_ads' })
-  alocatedAds: string;
 
   @Column()
   price: number;
 
-  @Column({ default: 0 })
+  @Column()
   discount: number;
 
-  @Column({ name: 'extra_costs', default: 0 })
-  extraCosts: number;
+  @Column({ name: 'final_price' })
+  finalPrice: number;
 
-  @Column({ name: 'preferred_due_date' })
-  preferredDueDate: number;
+  @Column({ name: 'payment_type', enum: PaymentType })
+  paymentType: PaymentType;
 
-  @Column({ name: 'initial_date' })
-  initialDate: Date;
+  @Column({ name: 'payment_status', enum: PaymentStatus })
+  paymentStatus: PaymentStatus;
 
-  @Column({ name: 'finished_date' })
-  finishedDate: Date;
+  @Column({ name: 'payment_date', nullable: true })
+  paymentDate: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -55,13 +48,15 @@ export class SubscriptionEntity {
   updatedAt: Date;
 
   //Relationship
-  @ManyToOne(() => CustomerEntity, (customer) => customer.subscriptions, {
+  @ManyToOne(() => CustomerEntity, (customer) => customer.charges, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'customer_id', referencedColumnName: 'cnpj' })
   customer?: CustomerEntity;
 
-  @ManyToOne(() => ProductEntity, (product) => product.subscriptions)
+  @ManyToOne(() => ProductEntity, (product) => product.charges, {
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
   product?: ProductEntity;
 }

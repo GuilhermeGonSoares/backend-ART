@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { ProductType } from '../../enums/product.enum';
 import { SubscriptionEntity } from '../../subscription/entities/subscription.entity';
+import { ChargeEntity } from '../../charge/entities/charge.entity';
 
 @Entity({ name: 'products' })
 export class ProductEntity {
@@ -39,4 +40,7 @@ export class ProductEntity {
 
   @OneToMany(() => SubscriptionEntity, (subscription) => subscription.product)
   subscriptions?: SubscriptionEntity[];
+
+  @OneToMany(() => ChargeEntity, (charge) => charge.product)
+  charges?: ChargeEntity[];
 }
