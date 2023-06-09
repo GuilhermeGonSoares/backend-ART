@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CustomerService } from '../customer/customer.service';
 import { ProductService } from '../product/product.service';
 import { CreateChargeDto } from './dto/create-charge.dto';
+import { ProductType } from '../enums/product.enum';
 
 @Injectable()
 export class ChargeService {
@@ -23,6 +24,10 @@ export class ChargeService {
       this.customerService.findCustomerBy('cnpj', customerId),
       this.productService.findProductBy('id', productId),
     ]);
+
+    if (product.type !== ProductType.Unique) {
+      throw new BadRequestException('Product must be unique');
+    }
 
     if (discount > product.price) {
       throw new BadRequestException(
