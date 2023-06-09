@@ -26,7 +26,7 @@ export class ChargeEntity {
   @Column()
   price: number;
 
-  @Column()
+  @Column({ default: 0 })
   discount: number;
 
   @Column({ name: 'final_price' })
@@ -35,7 +35,11 @@ export class ChargeEntity {
   @Column({ name: 'payment_type', enum: PaymentType })
   paymentType: PaymentType;
 
-  @Column({ name: 'payment_status', enum: PaymentStatus })
+  @Column({
+    name: 'payment_status',
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING,
+  })
   paymentStatus: PaymentStatus;
 
   @Column({ name: 'payment_date', nullable: true })
