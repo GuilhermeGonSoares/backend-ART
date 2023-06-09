@@ -1,10 +1,15 @@
 import {
   IsBoolean,
+  IsDateString,
   IsInt,
   IsNumber,
   IsOptional,
   IsString,
+  Max,
+  Min,
+  Validate,
 } from 'class-validator';
+import { IsDateLaterThan } from '../../utils/validates/finish-date.validation';
 
 export class CreateSubscriptionDto {
   @IsString()
@@ -19,6 +24,7 @@ export class CreateSubscriptionDto {
 
   @IsNumber()
   @IsOptional()
+  @Min(0)
   discount: number;
 
   @IsString()
@@ -31,14 +37,17 @@ export class CreateSubscriptionDto {
 
   @IsNumber()
   @IsOptional()
+  @Min(0)
   extraCosts: number;
 
   @IsInt()
+  @Max(28)
   preferredDueDate: number;
 
-  @IsString()
+  @IsDateString()
   initialDate: string;
 
-  @IsString()
+  @IsDateString()
+  @Validate(IsDateLaterThan)
   finishedDate: string;
 }
