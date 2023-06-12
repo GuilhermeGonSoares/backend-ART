@@ -50,4 +50,8 @@ export class CreateSubscriptionDto {
   @IsDateString()
   @Validate(IsDateLaterThan)
   finishedDate: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isCreateGroup?: boolean;
 }

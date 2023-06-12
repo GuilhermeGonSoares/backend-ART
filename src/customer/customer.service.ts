@@ -18,6 +18,7 @@ export class CustomerService {
 
   async create(createCustomerDto: CreateCustomerDto): Promise<CustomerEntity> {
     const { cnpj, financeEmail } = createCustomerDto;
+
     const customers = await this.findCustomerByCnpjOREmail(cnpj, financeEmail);
 
     if (customers.length > 0) {

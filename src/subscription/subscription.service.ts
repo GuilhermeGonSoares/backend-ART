@@ -11,6 +11,7 @@ import { CustomerService } from '../customer/customer.service';
 import { ProductService } from '../product/product.service';
 import { ProductType } from '../enums/product.enum';
 import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -19,14 +20,15 @@ export class SubscriptionService {
     private readonly repository: Repository<SubscriptionEntity>,
     private readonly customerService: CustomerService,
     private readonly productService: ProductService,
+    private readonly whatsappService: WhatsappService,
   ) {}
 
   async create(
     subscriptionDto: CreateSubscriptionDto,
   ): Promise<SubscriptionEntity> {
-    const { customerId, productId } = subscriptionDto;
+    const { customerId, productId, isCreateGroup } = subscriptionDto;
 
-    const [, product] = await Promise.all([
+    const [customer, product] = await Promise.all([
       this.customerService.findCustomerBy('cnpj', customerId),
       this.productService.findProductBy('id', productId),
     ]);
@@ -45,6 +47,15 @@ export class SubscriptionService {
     if (subscription) {
       throw new BadRequestException(
         `Already exist subscription for this customerId: ${customerId}`,
+      );
+    }
+
+    if (isCreateGroup) {
+      await this.whatsappService.createGroup(
+        customer.financePhone,
+        customer.name,
+        customer.cnpj,
+        product.name,
       );
     }
 

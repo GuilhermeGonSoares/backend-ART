@@ -6,6 +6,7 @@ import { CustomerModule } from './customer/customer.module';
 import { ProductModule } from './product/product.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { ChargeModule } from './charge/charge.module';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ChargeModule } from './charge/charge.module';
     ProductModule,
     SubscriptionModule,
     ChargeModule,
+    WhatsappModule,
   ],
   controllers: [],
   providers: [],
