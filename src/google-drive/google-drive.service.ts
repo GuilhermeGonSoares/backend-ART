@@ -1,17 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import { google, drive_v3 } from 'googleapis';
+import { GoogleDriveEntity } from './entities/google-drive.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class GoogleDriveService {
   private driveClient: drive_v3.Drive;
+  private URL_DRIVE = 'https://drive.google.com/drive/folders';
   private readonly scopes = ['https://www.googleapis.com/auth/drive'];
   private readonly CLIENT_ID: string;
   private readonly CLIENT_SECRET: string;
   private readonly REDIRECT_URI: string;
   private readonly REFRESH_TOKEN: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    @InjectRepository(GoogleDriveEntity)
+    private readonly repository: Repository<GoogleDriveEntity>,
+    private readonly configService: ConfigService,
+  ) {
     this.CLIENT_ID = configService.get('CLIENT_ID');
     this.CLIENT_SECRET = configService.get('CLIENT_SECRET');
     this.REDIRECT_URI = configService.get('REDIRECT_URI');
@@ -34,7 +46,7 @@ export class GoogleDriveService {
     });
   }
 
-  async createFolder(folderName: string) {
+  async createFolder(folderName: string, customerId: string) {
     const response = await this.driveClient.files.create({
       requestBody: {
         name: folderName,
@@ -52,14 +64,15 @@ export class GoogleDriveService {
       },
     });
 
-    this.createFolderInSharedDrive(
+    await this.createFolderInSharedDrive(
       folderId,
       'Briefing',
       'Contrato',
       'Materiais',
     );
 
-    return folderId;
+    const folder = await this.saveGoogleDriveRegister(folderId, customerId);
+    return folder.link;
   }
 
   async createFolderInSharedDrive(
@@ -86,5 +99,29 @@ export class GoogleDriveService {
         );
       }
     });
+  }
+
+  async saveGoogleDriveRegister(folderId: string, customerId: string) {
+    const folder = await this.findFolderId(folderId).catch(() => undefined);
+
+    if (folder) {
+      throw new BadRequestException(`Already exist folderId: ${folderId}`);
+    }
+
+    return await this.repository.save({
+      customerId,
+      folderId,
+      link: this.URL_DRIVE + '/' + folderId,
+    });
+  }
+
+  async findFolderId(folderId: string) {
+    const folder = await this.repository.findOne({ where: { folderId } });
+
+    if (!folder) {
+      throw new NotFoundException(`Not Found folderId: ${folderId}`);
+    }
+
+    return folder;
   }
 }

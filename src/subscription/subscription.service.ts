@@ -53,10 +53,13 @@ export class SubscriptionService {
       );
     }
 
-    let folderId: string;
+    let linkDrive: string;
 
     if (isCreateDrive) {
-      folderId = await this.googleDriveService.createFolder(customer.name);
+      linkDrive = await this.googleDriveService.createFolder(
+        customer.name,
+        customer.cnpj,
+      );
     }
 
     if (isCreateGroup) {
@@ -65,7 +68,7 @@ export class SubscriptionService {
         customer.name,
         customer.cnpj,
         product.name,
-        [`https://drive.google.com/drive/folders/${folderId}`],
+        [linkDrive],
       );
     }
 
