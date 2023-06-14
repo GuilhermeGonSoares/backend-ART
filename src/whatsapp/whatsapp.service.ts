@@ -10,6 +10,11 @@ import { WhatsappEntity } from './entities/whatsapp.entity';
 import { Repository } from 'typeorm';
 import { CreateGroupDto } from './dtos/create-group.dto';
 import { ExistWhatsappPhone } from './dtos/exist-whatsapp-phone.dto';
+import {
+  messageGroupCalendly,
+  messageGroupDrive,
+  messageGroupInitial,
+} from '../utils/messages/message.group';
 
 @Injectable()
 export class WhatsappService {
@@ -62,8 +67,6 @@ export class WhatsappService {
     ).catch(() => undefined);
 
     if (group) {
-      await this.updateImageGroup(group.groupId);
-      await this.updateDescriptionGroup(group.groupId);
       return group;
     }
     await this.existWhatsappNumber(phone);
@@ -82,7 +85,24 @@ export class WhatsappService {
 
     await this.saveWhatsappRegister(createGroup, customerId);
 
+    await this.sendMessageGroup(
+      createGroup.phone,
+      messageGroupInitial(customerName),
+      messageGroupDrive(links[0]),
+      messageGroupCalendly(customerName),
+    );
+
     return createGroup;
+  }
+
+  async sendMessageGroup(groupId: string, ...messages: string[]) {
+    messages.forEach(async (message) => {
+      await this.httpService.axiosRef.post(this.url + '/send-text', {
+        phone: groupId,
+        message,
+        delayMessage: 3,
+      });
+    });
   }
 
   async updateImageGroup(groupId: string) {
