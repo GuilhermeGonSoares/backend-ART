@@ -6,6 +6,7 @@ import { SubscriptionEntity } from './entities/subscription.entity';
 import { CustomerModule } from '../customer/customer.module';
 import { ProductModule } from '../product/product.module';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
+import { GoogleDriveModule } from '../google-drive/google-drive.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { WhatsappModule } from '../whatsapp/whatsapp.module';
     CustomerModule,
     ProductModule,
     WhatsappModule,
+    GoogleDriveModule,
   ],
   controllers: [SubscriptionController],
   providers: [SubscriptionService],

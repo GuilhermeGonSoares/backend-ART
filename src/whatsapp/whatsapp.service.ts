@@ -35,7 +35,7 @@ export class WhatsappService {
     customerName: string,
     links: string[],
   ): void {
-    this.description = `Grupo do projeto de *${productName}* da *${customerName}*. \n \n *Links Úteis*: \n <AQUIVAILINKS> \n *Google Drive*: \n <AQUIVAIGOOGLEDRIVE> \n *Dashboard de Acompanhamento* [TR] \n \n *Agendar Reuniões* \n Link do Calendly \n \n E aí, vamos decolar? 🚀`;
+    this.description = `Grupo do projeto de *${productName}* da *${customerName}*. \n \n *Links Úteis*: \n <AQUIVAILINKS> \n *Google Drive*: \n ${links[0]} \n *Dashboard de Acompanhamento* [TR] \n \n *Agendar Reuniões* \n Link do Calendly \n \n E aí, vamos decolar? 🚀`;
   }
 
   async existWhatsappNumber(phone: string): Promise<boolean> {
@@ -53,8 +53,9 @@ export class WhatsappService {
     customerName: string,
     customerId: string,
     productName: string,
+    links: string[],
   ) {
-    this.setDescription(productName, customerName, []);
+    this.setDescription(productName, customerName, links);
 
     const group: WhatsappEntity = await this.findGroupByCustomerId(
       customerId,

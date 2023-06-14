@@ -12,6 +12,7 @@ import { ProductService } from '../product/product.service';
 import { ProductType } from '../enums/product.enum';
 import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { GoogleDriveService } from '../google-drive/google-drive.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -21,12 +22,14 @@ export class SubscriptionService {
     private readonly customerService: CustomerService,
     private readonly productService: ProductService,
     private readonly whatsappService: WhatsappService,
+    private readonly googleDriveService: GoogleDriveService,
   ) {}
 
   async create(
     subscriptionDto: CreateSubscriptionDto,
   ): Promise<SubscriptionEntity> {
-    const { customerId, productId, isCreateGroup } = subscriptionDto;
+    const { customerId, productId, isCreateGroup, isCreateDrive } =
+      subscriptionDto;
 
     const [customer, product] = await Promise.all([
       this.customerService.findCustomerBy('cnpj', customerId),
@@ -50,12 +53,19 @@ export class SubscriptionService {
       );
     }
 
+    let folderId: string;
+
+    if (isCreateDrive) {
+      folderId = await this.googleDriveService.createFolder(customer.name);
+    }
+
     if (isCreateGroup) {
       await this.whatsappService.createGroup(
         customer.financePhone,
         customer.name,
         customer.cnpj,
         product.name,
+        [`https://drive.google.com/drive/folders/${folderId}`],
       );
     }
 

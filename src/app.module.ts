@@ -7,6 +7,7 @@ import { ProductModule } from './product/product.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { ChargeModule } from './charge/charge.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { GoogleDriveModule } from './google-drive/google-drive.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
     SubscriptionModule,
     ChargeModule,
     WhatsappModule,
+    GoogleDriveModule,
   ],
   controllers: [],
   providers: [],
