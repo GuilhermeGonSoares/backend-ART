@@ -2,6 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -9,11 +11,15 @@ import {
 import { ProductType } from '../../enums/product.enum';
 import { SubscriptionEntity } from '../../subscription/entities/subscription.entity';
 import { ChargeEntity } from '../../charge/entities/charge.entity';
+import { ContractEntity } from '../../contract/entities/contract.entity';
 
 @Entity({ name: 'products' })
 export class ProductEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
+
+  @Column({ name: 'contract_id', nullable: true })
+  contractId: number;
 
   @Column({ unique: true })
   name: string;
@@ -43,4 +49,10 @@ export class ProductEntity {
 
   @OneToMany(() => ChargeEntity, (charge) => charge.product)
   charges?: ChargeEntity[];
+
+  @ManyToOne(() => ContractEntity, (contract) => contract.products, {
+    eager: true,
+  })
+  @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
+  contract?: ContractEntity;
 }

@@ -8,6 +8,8 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { ChargeModule } from './charge/charge.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { GoogleDriveModule } from './google-drive/google-drive.module';
+import { AutentiqueModule } from './autentique/autentique.module';
+import { ContractModule } from './contract/contract.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { GoogleDriveModule } from './google-drive/google-drive.module';
     ChargeModule,
     WhatsappModule,
     GoogleDriveModule,
+    AutentiqueModule,
+    ContractModule,
   ],
   controllers: [],
   providers: [],

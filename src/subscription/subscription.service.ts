@@ -13,6 +13,7 @@ import { ProductType } from '../enums/product.enum';
 import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { GoogleDriveService } from '../google-drive/google-drive.service';
+import { AutentiqueService } from '../autentique/autentique.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -23,13 +24,19 @@ export class SubscriptionService {
     private readonly productService: ProductService,
     private readonly whatsappService: WhatsappService,
     private readonly googleDriveService: GoogleDriveService,
+    private readonly autentiqueService: AutentiqueService,
   ) {}
 
   async create(
     subscriptionDto: CreateSubscriptionDto,
   ): Promise<SubscriptionEntity> {
-    const { customerId, productId, isCreateGroup, isCreateDrive } =
-      subscriptionDto;
+    const {
+      customerId,
+      productId,
+      isCreateGroup,
+      isCreateDrive,
+      isAutentique,
+    } = subscriptionDto;
 
     const [customer, product] = await Promise.all([
       this.customerService.findCustomerBy('cnpj', customerId),
@@ -54,6 +61,14 @@ export class SubscriptionService {
     }
 
     let linkDrive: string;
+
+    if (isAutentique) {
+      await this.autentiqueService.createDocument(
+        customer.name,
+        customer.financeEmail,
+        product.contract.filePath,
+      );
+    }
 
     if (isCreateDrive) {
       linkDrive = await this.googleDriveService.createFolder(

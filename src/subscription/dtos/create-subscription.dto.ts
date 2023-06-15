@@ -58,4 +58,8 @@ export class CreateSubscriptionDto {
   @IsBoolean()
   @IsOptional()
   isCreateDrive?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isAutentique?: boolean;
 }

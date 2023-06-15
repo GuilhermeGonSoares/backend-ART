@@ -5,6 +5,7 @@ export class ReturnProductDto {
   private id: number;
   private name: string;
   private description: string;
+  private contractId: number;
   private price: number;
   private type: ProductType;
   private numberOfPosts: number;
@@ -13,6 +14,7 @@ export class ReturnProductDto {
     this.id = product.id;
     this.name = product.name;
     this.description = product.description;
+    this.contractId = product.contractId;
     this.price = product.price;
     this.type = product.type;
     this.numberOfPosts = product.numberOfPosts;

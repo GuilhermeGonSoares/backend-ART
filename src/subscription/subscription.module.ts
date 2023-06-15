@@ -7,6 +7,7 @@ import { CustomerModule } from '../customer/customer.module';
 import { ProductModule } from '../product/product.module';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { GoogleDriveModule } from '../google-drive/google-drive.module';
+import { AutentiqueModule } from '../autentique/autentique.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { GoogleDriveModule } from '../google-drive/google-drive.module';
     ProductModule,
     WhatsappModule,
     GoogleDriveModule,
+    AutentiqueModule,
   ],
   controllers: [SubscriptionController],
   providers: [SubscriptionService],

@@ -8,12 +8,14 @@ import { ProductEntity } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
+import { ContractService } from '../contract/contract.service';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(ProductEntity)
     private readonly repository: Repository<ProductEntity>,
+    private readonly contractService: ContractService,
   ) {}
 
   async list(): Promise<ProductEntity[]> {
@@ -31,7 +33,14 @@ export class ProductService {
       );
     }
 
-    return await this.repository.save({ ...productDto });
+    const contract = await this.contractService
+      .findContractBy('name', productDto.contractName)
+      .catch(() => undefined);
+
+    return await this.repository.save({
+      contractId: contract?.id || null,
+      ...productDto,
+    });
   }
 
   async findProductBy<k extends keyof ProductEntity>(

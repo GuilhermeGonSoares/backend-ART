@@ -17,4 +17,7 @@ export class CreateProductDto {
   @IsNumber()
   @IsOptional()
   numberOfPosts: number;
+
+  @IsString()
+  contractName: string;
 }

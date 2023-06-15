@@ -11,4 +11,5 @@ export const ProductMock: ProductEntity = {
   numberOfPosts: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
+  contractId: 0,
 };
