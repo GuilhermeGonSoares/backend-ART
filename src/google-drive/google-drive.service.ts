@@ -60,7 +60,6 @@ export class GoogleDriveService {
     folderId: string,
     customerName: string,
   ) {
-    console.log(filePath);
     try {
       const response = await this.driveClient.files.create({
         requestBody: {
@@ -73,6 +72,7 @@ export class GoogleDriveService {
           body: createReadStream(filePath),
         },
       });
+      console.log('Arquivo salvo no google drive com sucesso!');
       return response.data.id;
     } catch (error) {
       throw new InternalServerErrorException(error);
@@ -128,7 +128,7 @@ export class GoogleDriveService {
   async createFolder(folderName: string, customerId: string) {
     const response = await this.driveClient.files.create({
       requestBody: {
-        name: folderName,
+        name: 'TFG - ' + folderName,
         mimeType: 'application/vnd.google-apps.folder',
       },
       fields: 'id, name',
@@ -151,6 +151,7 @@ export class GoogleDriveService {
     );
 
     const folder = await this.saveGoogleDriveRegister(folderId, customerId);
+    console.log('GOOGLE DRIVE CRIADO');
     return folder.link;
   }
 

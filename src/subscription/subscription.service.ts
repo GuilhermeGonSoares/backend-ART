@@ -11,11 +11,9 @@ import { CustomerService } from '../customer/customer.service';
 import { ProductService } from '../product/product.service';
 import { ProductType } from '../enums/product.enum';
 import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
-import { GoogleDriveService } from '../google-drive/google-drive.service';
-import { AutentiqueService } from '../autentique/autentique.service';
-import { IContract } from '../contract/interfaces/contract.interface';
-
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { CreateContractDto } from '../consumer/dtos/create-contract.dto';
 @Injectable()
 export class SubscriptionService {
   constructor(
@@ -23,9 +21,7 @@ export class SubscriptionService {
     private readonly repository: Repository<SubscriptionEntity>,
     private readonly customerService: CustomerService,
     private readonly productService: ProductService,
-    private readonly whatsappService: WhatsappService,
-    private readonly googleDriveService: GoogleDriveService,
-    private readonly autentiqueService: AutentiqueService,
+    @InjectQueue('automations') private readonly automationQueue: Queue,
   ) {}
 
   async create(
@@ -61,40 +57,35 @@ export class SubscriptionService {
       );
     }
 
-    let linkDrive: string;
+    if (isCreateDrive) {
+      await this.automationQueue.add(
+        'createDrive',
+        {
+          customer,
+          productName: product.name,
+          isCreateGroup,
+        },
+        {
+          priority: 1,
+        },
+      );
+    }
+
+    // if (isCreateGroup) {
+    //   const createGroupDto = new CreateGroupDto(customer, product.name, [
+    //     linkDrive,
+    //   ]);
+    //   await this.automationQueue.add('createGroup', {
+    //     ...createGroupDto,
+    //   });
+    // }
 
     if (isAutentique) {
-      const discount = subscriptionDto.discount ? subscriptionDto?.discount : 0;
-      const payload: IContract = {
-        name: product.contract.name,
-        filePath: product.contract.filePath,
-        customerName: customer.name,
-        customerCnpj: customer.cnpj,
-        customerEmail: customer.financeEmail,
-        finalPrice: (product.price - discount).toString(),
-        numberOfPosts: product.numberOfPosts.toString(),
-      };
-
-      await this.autentiqueService.createDocument(payload);
-
-      throw new BadRequestException('parando fluxo');
-    }
-
-    if (isCreateDrive) {
-      linkDrive = await this.googleDriveService.createFolder(
-        customer.name,
-        customer.cnpj,
-      );
-    }
-
-    if (isCreateGroup) {
-      await this.whatsappService.createGroup(
-        customer.financePhone,
-        customer.name,
-        customer.cnpj,
-        product.name,
-        [linkDrive],
-      );
+      const discount = subscriptionDto.discount;
+      const payload = new CreateContractDto(product, customer, discount);
+      await this.automationQueue.add('autentique', {
+        ...payload,
+      });
     }
 
     return await this.repository.save({

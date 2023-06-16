@@ -8,13 +8,13 @@ import { ContractEntity } from './entities/contract.entity';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
-import { IContract } from './interfaces/contract.interface';
 import Docxtemplater from 'docxtemplater';
 import PizZip from 'pizzip';
 import { GoogleDriveService } from '../google-drive/google-drive.service';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import FormData from 'form-data';
+import { CreateContractDto } from '../consumer/dtos/create-contract.dto';
 @Injectable()
 export class ContractService {
   private readonly uploadPath = path.join(__dirname, '..', 'uploads');
@@ -61,7 +61,7 @@ export class ContractService {
     return contract;
   }
 
-  async replacePDFVariables(contract: IContract, folderId: string) {
+  async replacePDFVariables(contract: CreateContractDto, folderId: string) {
     const copyFile = fs.readFileSync(contract.filePath);
     const pathCopyFile = `./uploads/temp-${Date.now()}-${contract.name}`;
 
@@ -72,7 +72,8 @@ export class ContractService {
       numerocnpj: contract.customerCnpj,
       valor: contract.finalPrice,
       numerodeposts: contract.numberOfPosts,
-      prazoemdias: '30',
+      dataassinatura: contract.signatureDate,
+      prazoemdias: contract.contractTimeDays,
     };
 
     const zip = new PizZip(content);
@@ -93,10 +94,14 @@ export class ContractService {
     fs.writeFileSync(pathCopyFile, buf);
 
     try {
-      const pathDestiny = await this.convertDocToPdf(
-        pathCopyFile,
-        contract.name,
-      );
+      const [, pathDestiny] = await Promise.all([
+        this.googleService.uploadFileOnGoogleDrive(
+          pathCopyFile,
+          folderId,
+          contract.customerName,
+        ),
+        this.convertDocToPdf(pathCopyFile, contract.name),
+      ]);
       fs.unlinkSync(pathCopyFile);
       return pathDestiny;
     } catch (error) {
@@ -148,9 +153,7 @@ export class ContractService {
 
   async convertDocToPdf(filePath: string, fileName: string) {
     await this.getTokenILovePdf();
-    console.log('token resolvido');
     await this.getServeAndTask();
-    console.log('server e task');
     const serverFilename = await this.uploadFileToTask(filePath);
 
     const url = `https://${this.ILOVEPDF_SERVER}/v1/process`;
@@ -182,6 +185,7 @@ export class ContractService {
     const pathDestiny = './uploads/' + serverFilename.split('.')[0] + '.pdf';
     const pdfData = Buffer.from(downloadResponse.data, 'binary');
     fs.writeFileSync(pathDestiny, pdfData);
+    console.log('Arquivo convertido e salvo com sucesso!');
     return pathDestiny;
   }
 }

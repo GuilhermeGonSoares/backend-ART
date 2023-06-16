@@ -3,9 +3,9 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import FormData from 'form-data';
 import { createReadStream } from 'fs';
-import { IContract } from '../contract/interfaces/contract.interface';
 import { ContractService } from '../contract/contract.service';
 import * as fs from 'fs';
+import { CreateContractDto } from '../consumer/dtos/create-contract.dto';
 @Injectable()
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';
@@ -19,14 +19,13 @@ export class AutentiqueService {
     this.AUTENTIQUE_TOKEN = this.configService.get('AUTENTIQUE_TOKEN');
   }
 
-  async createDocument(contract: IContract) {
+  async createDocument(contract: CreateContractDto) {
     try {
       const pathDestiny = await this.contractService.replacePDFVariables(
         contract,
         '1qx4jIYedNiSgrRovdUDDKPq7wmVjXiTP',
       );
 
-      console.log(pathDestiny);
       const query = `mutation CreateDocumentMutation(
         $document: DocumentInput!,
         $signers: [SignerInput!]!,
@@ -83,6 +82,7 @@ export class AutentiqueService {
         headers,
       });
       fs.unlinkSync(pathDestiny);
+      console.log('Arquivo enviado para AUTENTIQUE com sucesso!');
     } catch (error) {
       throw new InternalServerErrorException(error);
     }

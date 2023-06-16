@@ -8,13 +8,14 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WhatsappEntity } from './entities/whatsapp.entity';
 import { Repository } from 'typeorm';
-import { CreateGroupDto } from './dtos/create-group.dto';
 import { ExistWhatsappPhone } from './dtos/exist-whatsapp-phone.dto';
 import {
   messageGroupCalendly,
   messageGroupDrive,
   messageGroupInitial,
 } from '../utils/messages/message.group';
+import { CreateGroupDto } from '../consumer/dtos/create-group.dto';
+import { ResponseCreateGroupDto } from './dtos/create-group.dto';
 
 @Injectable()
 export class WhatsappService {
@@ -53,13 +54,13 @@ export class WhatsappService {
     return true;
   }
 
-  async createGroup(
-    phone: string,
-    customerName: string,
-    customerId: string,
-    productName: string,
-    links: string[],
-  ) {
+  async createGroup({
+    phone,
+    customerName,
+    customerId,
+    productName,
+    links,
+  }: CreateGroupDto) {
     this.setDescription(productName, customerName, links);
 
     const group: WhatsappEntity = await this.findGroupByCustomerId(
@@ -67,6 +68,8 @@ export class WhatsappService {
     ).catch(() => undefined);
 
     if (group) {
+      await this.updateImageGroup(group.groupId);
+      await this.updateDescriptionGroup(group.groupId);
       return group;
     }
     await this.existWhatsappNumber(phone);
@@ -78,7 +81,7 @@ export class WhatsappService {
         phones: ['55' + phone],
       },
     );
-    const createGroup: CreateGroupDto = response.data;
+    const createGroup: ResponseCreateGroupDto = response.data;
 
     await this.updateImageGroup(createGroup.phone);
     await this.updateDescriptionGroup(createGroup.phone);
@@ -91,7 +94,7 @@ export class WhatsappService {
       messageGroupDrive(links[0]),
       messageGroupCalendly(customerName),
     );
-
+    console.log('GRUPO CRIADO NO WHATSAPP');
     return createGroup;
   }
 
@@ -137,7 +140,10 @@ export class WhatsappService {
     return true;
   }
 
-  async saveWhatsappRegister(createGroup: CreateGroupDto, customerId: string) {
+  async saveWhatsappRegister(
+    createGroup: ResponseCreateGroupDto,
+    customerId: string,
+  ) {
     return await this.repository.save({
       customerId,
       groupId: createGroup.phone,

@@ -1,4 +1,4 @@
-export interface CreateGroupDto {
+export interface ResponseCreateGroupDto {
   phone: string;
   invitationLink: string;
 }

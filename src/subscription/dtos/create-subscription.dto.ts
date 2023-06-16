@@ -23,7 +23,6 @@ export class CreateSubscriptionDto {
   active: boolean;
 
   @IsNumber()
-  @IsOptional()
   @Min(0)
   discount: number;
 
