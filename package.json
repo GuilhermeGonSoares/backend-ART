@@ -24,6 +24,7 @@
     "migration:revert": "npm run typeorm -- migration:revert"
   },
   "dependencies": {
+    "@ilovepdf/ilovepdf-nodejs": "^0.2.1",
     "@nestjs/axios": "^2.0.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.3.2",
@@ -35,11 +36,13 @@
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "docxtemplater": "^3.37.11",
     "form-data": "^4.0.0",
     "google-auth-library": "^8.8.0",
     "googleapis": "^118.0.0",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.11.0",
+    "pizzip": "^3.1.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "typeorm": "^0.3.16"

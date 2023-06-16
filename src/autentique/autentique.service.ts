@@ -1,9 +1,11 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as FormData from 'form-data';
+import FormData from 'form-data';
 import { createReadStream } from 'fs';
-
+import { IContract } from '../contract/interfaces/contract.interface';
+import { ContractService } from '../contract/contract.service';
+import * as fs from 'fs';
 @Injectable()
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';
@@ -12,16 +14,19 @@ export class AutentiqueService {
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly contractService: ContractService,
   ) {
     this.AUTENTIQUE_TOKEN = this.configService.get('AUTENTIQUE_TOKEN');
   }
 
-  async createDocument(
-    customerName: string,
-    customerEmail: string,
-    filePath: string,
-  ) {
+  async createDocument(contract: IContract) {
     try {
+      const pathDestiny = await this.contractService.replacePDFVariables(
+        contract,
+        '1qx4jIYedNiSgrRovdUDDKPq7wmVjXiTP',
+      );
+
+      console.log(pathDestiny);
       const query = `mutation CreateDocumentMutation(
         $document: DocumentInput!,
         $signers: [SignerInput!]!,
@@ -52,10 +57,10 @@ export class AutentiqueService {
       const operations = JSON.stringify({
         query,
         variables: {
-          document: { name: `Contrato do cliente ${customerName}` },
+          document: { name: `Contrato do cliente ${contract.customerName}` },
           signers: [
             {
-              email: customerEmail,
+              email: contract.customerEmail,
               action: 'SIGN',
             },
           ],
@@ -68,7 +73,7 @@ export class AutentiqueService {
       const formData = new FormData({});
       formData.append('operations', operations);
       formData.append('map', map);
-      formData.append('file', createReadStream(filePath));
+      formData.append('file', createReadStream(pathDestiny));
 
       const headers = {
         Authorization: `Bearer ${this.AUTENTIQUE_TOKEN}`,
@@ -77,10 +82,9 @@ export class AutentiqueService {
       await this.httpService.axiosRef.post(this.AUTENTIQUE_URL, formData, {
         headers,
       });
+      fs.unlinkSync(pathDestiny);
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Unexpected error creating a contract ',
-      );
+      throw new InternalServerErrorException(error);
     }
   }
 }

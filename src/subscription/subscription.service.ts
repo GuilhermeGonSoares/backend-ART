@@ -14,6 +14,7 @@ import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { GoogleDriveService } from '../google-drive/google-drive.service';
 import { AutentiqueService } from '../autentique/autentique.service';
+import { IContract } from '../contract/interfaces/contract.interface';
 
 @Injectable()
 export class SubscriptionService {
@@ -63,11 +64,20 @@ export class SubscriptionService {
     let linkDrive: string;
 
     if (isAutentique) {
-      await this.autentiqueService.createDocument(
-        customer.name,
-        customer.financeEmail,
-        product.contract.filePath,
-      );
+      const discount = subscriptionDto.discount ? subscriptionDto?.discount : 0;
+      const payload: IContract = {
+        name: product.contract.name,
+        filePath: product.contract.filePath,
+        customerName: customer.name,
+        customerCnpj: customer.cnpj,
+        customerEmail: customer.financeEmail,
+        finalPrice: (product.price - discount).toString(),
+        numberOfPosts: product.numberOfPosts.toString(),
+      };
+
+      await this.autentiqueService.createDocument(payload);
+
+      throw new BadRequestException('parando fluxo');
     }
 
     if (isCreateDrive) {
