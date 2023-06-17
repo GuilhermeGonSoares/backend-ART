@@ -10,6 +10,8 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { GoogleDriveModule } from './google-drive/google-drive.module';
 import { AutentiqueModule } from './autentique/autentique.module';
 import { ContractModule } from './contract/contract.module';
+import { AutomationsModule } from './automations/automations.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { ContractModule } from './contract/contract.module';
     GoogleDriveModule,
     AutentiqueModule,
     ContractModule,
+    AutomationsModule,
+    WebhookModule,
   ],
   controllers: [],
   providers: [],

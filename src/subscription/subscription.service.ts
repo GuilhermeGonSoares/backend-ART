@@ -13,7 +13,8 @@ import { ProductType } from '../enums/product.enum';
 import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import { CreateContractDto } from '../consumer/dtos/create-contract.dto';
+import { CreateContractDto } from '../automations/dtos/create-contract.dto';
+import { SubscriptionStatus } from '../enums/subscription-status.enum';
 @Injectable()
 export class SubscriptionService {
   constructor(
@@ -95,7 +96,9 @@ export class SubscriptionService {
   }
 
   async list(): Promise<SubscriptionEntity[]> {
-    return await this.repository.find({ where: { active: true } });
+    return await this.repository.find({
+      where: { status: SubscriptionStatus.ACTIVE },
+    });
   }
 
   async findActiveSubscriptionByCustomerId(
@@ -106,7 +109,7 @@ export class SubscriptionService {
       ? { customer: true, product: true }
       : undefined;
     const subscription = await this.repository.findOne({
-      where: { customerId, active: true },
+      where: { customerId, status: SubscriptionStatus.ACTIVE },
       relations,
     });
 
@@ -160,7 +163,7 @@ export class SubscriptionService {
       customerId,
       false,
     );
-    subscription.active = false;
+    subscription.status = SubscriptionStatus.EXPIRED;
     return await this.repository.save({ ...subscription });
   }
 }

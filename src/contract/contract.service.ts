@@ -14,7 +14,7 @@ import { GoogleDriveService } from '../google-drive/google-drive.service';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import FormData from 'form-data';
-import { CreateContractDto } from '../consumer/dtos/create-contract.dto';
+import { CreateContractDto } from '../automations/dtos/create-contract.dto';
 @Injectable()
 export class ContractService {
   private readonly uploadPath = path.join(__dirname, '..', 'uploads');

@@ -7,7 +7,7 @@ import {
 import { Job, Queue } from 'bull';
 import { GoogleDriveService } from '../google-drive/google-drive.service';
 import { CustomerEntity } from '../customer/entities/customer.entity';
-import { CreateGroupDto } from './dtos/create-group.dto';
+import { CreateGroupDto } from '../automations/dtos/create-group.dto';
 
 @Processor('automations')
 export class CreateDriveConsumer {
@@ -24,6 +24,7 @@ export class CreateDriveConsumer {
     }>,
   ) {
     const { customer } = job.data;
+
     return await this.googleDriveService.createFolder(
       customer.name,
       customer.cnpj,

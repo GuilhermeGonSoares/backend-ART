@@ -1,4 +1,5 @@
 import { ReturnCustomerDto } from '../../customer/dtos/return-customer.dto';
+import { SubscriptionStatus } from '../../enums/subscription-status.enum';
 import { ReturnProductDto } from '../../product/dtos/return-product.dto';
 import { SubscriptionEntity } from '../entities/subscription.entity';
 
@@ -6,7 +7,7 @@ export class ReturnSubscriptionDto {
   private id: number;
   private customerId: string;
   private productId: number;
-  private active: boolean;
+  private status: SubscriptionStatus;
   private alocatedDesigner: string;
   private alocatedAds: string;
   private price: number;
@@ -24,7 +25,7 @@ export class ReturnSubscriptionDto {
       ? undefined
       : subscription.customerId;
     this.productId = subscription.product ? undefined : subscription.productId;
-    this.active = subscription.active;
+    this.status = subscription.status;
     this.alocatedDesigner = subscription.alocatedDesigner;
     this.alocatedAds = subscription.alocatedAds;
     this.price = subscription.price;

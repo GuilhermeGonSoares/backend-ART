@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { CustomerEntity } from '../../customer/entities/customer.entity';
 import { ProductEntity } from '../../product/entities/product.entity';
+import { SubscriptionStatus } from '../../enums/subscription-status.enum';
 
 @Entity({ name: 'subscriptions' })
 export class SubscriptionEntity {
@@ -21,8 +22,8 @@ export class SubscriptionEntity {
   @Column({ name: 'product_id' })
   productId: number;
 
-  @Column({ type: 'bool', default: true })
-  active: boolean;
+  @Column({ enum: SubscriptionStatus, default: SubscriptionStatus.PENDING })
+  status: SubscriptionStatus;
 
   @Column({ nullable: true, name: 'alocated_designer' })
   alocatedDesigner: string;

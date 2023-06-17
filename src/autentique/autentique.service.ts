@@ -5,7 +5,7 @@ import FormData from 'form-data';
 import { createReadStream } from 'fs';
 import { ContractService } from '../contract/contract.service';
 import * as fs from 'fs';
-import { CreateContractDto } from '../consumer/dtos/create-contract.dto';
+import { CreateContractDto } from '../automations/dtos/create-contract.dto';
 @Injectable()
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';

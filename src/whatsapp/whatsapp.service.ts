@@ -14,7 +14,7 @@ import {
   messageGroupDrive,
   messageGroupInitial,
 } from '../utils/messages/message.group';
-import { CreateGroupDto } from '../consumer/dtos/create-group.dto';
+import { CreateGroupDto } from '../automations/dtos/create-group.dto';
 import { ResponseCreateGroupDto } from './dtos/create-group.dto';
 
 @Injectable()
@@ -86,7 +86,7 @@ export class WhatsappService {
     await this.updateImageGroup(createGroup.phone);
     await this.updateDescriptionGroup(createGroup.phone);
 
-    await this.saveWhatsappRegister(createGroup, customerId);
+    // await this.saveWhatsappRegister(createGroup, customerId);
 
     await this.sendMessageGroup(
       createGroup.phone,
