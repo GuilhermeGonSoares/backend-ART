@@ -16,5 +16,6 @@ import { AutomationsModule } from '../automations/automations.module';
   ],
   controllers: [SubscriptionController],
   providers: [SubscriptionService],
+  exports: [SubscriptionService],
 })
 export class SubscriptionModule {}

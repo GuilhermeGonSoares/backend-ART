@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SubscriptionEntity } from './entities/subscription.entity';
-import { Repository } from 'typeorm';
+import { Repository, In, IsNull } from 'typeorm';
 import { CreateSubscriptionDto } from './dtos/create-subscription.dto';
 import { CustomerService } from '../customer/customer.service';
 import { ProductService } from '../product/product.service';
@@ -58,6 +58,11 @@ export class SubscriptionService {
       );
     }
 
+    const subscriptionCreated = await this.repository.save({
+      ...subscriptionDto,
+      price: product.price,
+    });
+
     if (isCreateDrive) {
       await this.automationQueue.add(
         'createDrive',
@@ -89,16 +94,52 @@ export class SubscriptionService {
       });
     }
 
-    return await this.repository.save({
-      ...subscriptionDto,
-      price: product.price,
-    });
+    return subscriptionCreated;
   }
 
   async list(): Promise<SubscriptionEntity[]> {
     return await this.repository.find({
       where: { status: SubscriptionStatus.ACTIVE },
     });
+  }
+
+  async updateSubscriptionStatusByContractId(
+    contractId: string,
+    status: SubscriptionStatus,
+  ): Promise<SubscriptionEntity> {
+    const subscription = await this.repository.findOne({
+      where: { contractId },
+    });
+    if (!subscription) {
+      throw new NotFoundException(
+        `Not Found subscription with this contractId`,
+      );
+    }
+    return this.repository.save({ ...subscription, status });
+  }
+
+  async updateSubscriptionWithNullContractId(
+    customerId: string,
+    contractId: string,
+  ): Promise<SubscriptionEntity> {
+    console.log('customerId', customerId);
+    console.log('contractId', contractId);
+
+    const subscription = await this.repository.findOne({
+      where: {
+        customerId,
+        status: SubscriptionStatus.PENDING,
+        contractId: IsNull(),
+      },
+    });
+    console.log(subscription);
+    if (!subscription) {
+      throw new NotFoundException(
+        `Not Found subscription for this customerId with contract_id null`,
+      );
+    }
+
+    return this.repository.save({ ...subscription, contractId });
   }
 
   async findActiveSubscriptionByCustomerId(
@@ -109,7 +150,10 @@ export class SubscriptionService {
       ? { customer: true, product: true }
       : undefined;
     const subscription = await this.repository.findOne({
-      where: { customerId, status: SubscriptionStatus.ACTIVE },
+      where: {
+        customerId,
+        status: In([SubscriptionStatus.PENDING, SubscriptionStatus.ACTIVE]),
+      },
       relations,
     });
 
@@ -163,7 +207,7 @@ export class SubscriptionService {
       customerId,
       false,
     );
-    subscription.status = SubscriptionStatus.EXPIRED;
+    subscription.status = SubscriptionStatus.DISABLED;
     return await this.repository.save({ ...subscription });
   }
 }

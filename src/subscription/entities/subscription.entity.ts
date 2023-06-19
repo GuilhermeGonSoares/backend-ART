@@ -22,6 +22,9 @@ export class SubscriptionEntity {
   @Column({ name: 'product_id' })
   productId: number;
 
+  @Column({ name: 'contract_id', nullable: true })
+  contractId: string;
+
   @Column({ enum: SubscriptionStatus, default: SubscriptionStatus.PENDING })
   status: SubscriptionStatus;
 

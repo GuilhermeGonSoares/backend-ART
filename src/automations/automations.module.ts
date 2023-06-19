@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { CreateContractConsumer } from './create-contract.consumer';
 import { CreateDriveConsumer } from './create-drive.consumer';
 import { CreateGroupConsumer } from './create-group.consumer';
@@ -24,7 +24,7 @@ import { WhatsappModule } from '../whatsapp/whatsapp.module';
     }),
     WhatsappModule,
     GoogleDriveModule,
-    AutentiqueModule,
+    forwardRef(() => AutentiqueModule),
   ],
   providers: [CreateDriveConsumer, CreateGroupConsumer, CreateContractConsumer],
   exports: [

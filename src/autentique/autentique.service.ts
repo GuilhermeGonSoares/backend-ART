@@ -6,6 +6,7 @@ import { createReadStream } from 'fs';
 import { ContractService } from '../contract/contract.service';
 import * as fs from 'fs';
 import { CreateContractDto } from '../automations/dtos/create-contract.dto';
+import { SubscriptionService } from '../subscription/subscription.service';
 @Injectable()
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';
@@ -15,6 +16,7 @@ export class AutentiqueService {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
     private readonly contractService: ContractService,
+    private readonly subscriptionService: SubscriptionService,
   ) {
     this.AUTENTIQUE_TOKEN = this.configService.get('AUTENTIQUE_TOKEN');
   }
@@ -32,6 +34,7 @@ export class AutentiqueService {
         $file: Upload!
       ) {
         createDocument(
+          sandbox: true,
           document: $document,
           signers: $signers,
           file: $file
@@ -56,7 +59,15 @@ export class AutentiqueService {
       const operations = JSON.stringify({
         query,
         variables: {
-          document: { name: `Contrato do cliente ${contract.customerName}` },
+          document: {
+            name: `Contrato do cliente ${contract.customerName}`,
+            refusable: true,
+          },
+          expiration: {
+            // Envia um lembrete em uma quantidade de dias "days_before antes do
+            // vencimento do documento informada no "notify_at"
+            days_before: 2,
+          },
           signers: [
             {
               email: contract.customerEmail,
@@ -78,9 +89,18 @@ export class AutentiqueService {
         Authorization: `Bearer ${this.AUTENTIQUE_TOKEN}`,
         ...formData.getHeaders(),
       };
-      await this.httpService.axiosRef.post(this.AUTENTIQUE_URL, formData, {
-        headers,
-      });
+      const { data } = await this.httpService.axiosRef.post(
+        this.AUTENTIQUE_URL,
+        formData,
+        {
+          headers,
+        },
+      );
+      const autentiqueContract = { ...data.data.createDocument };
+      await this.subscriptionService.updateSubscriptionWithNullContractId(
+        contract.customerCnpj,
+        autentiqueContract.id,
+      );
       fs.unlinkSync(pathDestiny);
       console.log('Arquivo enviado para AUTENTIQUE com sucesso!');
     } catch (error) {
