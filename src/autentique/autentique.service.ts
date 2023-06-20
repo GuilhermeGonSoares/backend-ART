@@ -1,24 +1,128 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import FormData from 'form-data';
 import { createReadStream } from 'fs';
 import { ContractService } from '../contract/contract.service';
 import * as fs from 'fs';
 import { CreateContractDto } from '../automations/dtos/create-contract.dto';
-import { SubscriptionService } from '../subscription/subscription.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AutentiqueEntity } from './entities/autentique.entity';
+import { IsNull, Repository } from 'typeorm';
+import { AutentiqueStatus } from '../enums/autentique-contract.enum';
+import { ReturnDocumentDto } from './dtos/return-document.dto';
 @Injectable()
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';
   private readonly AUTENTIQUE_TOKEN: string;
 
   constructor(
+    @InjectRepository(AutentiqueEntity)
+    private readonly repository: Repository<AutentiqueEntity>,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
     private readonly contractService: ContractService,
-    private readonly subscriptionService: SubscriptionService,
   ) {
     this.AUTENTIQUE_TOKEN = this.configService.get('AUTENTIQUE_TOKEN');
+  }
+
+  async findContractWithPendingSignature(): Promise<AutentiqueEntity[]> {
+    return await this.repository.find({
+      where: {
+        signatureStatus: AutentiqueStatus.PENDING,
+      },
+    });
+  }
+
+  async updateSignatureStatus(autentiqueId: string, status: AutentiqueStatus) {
+    const contract = await this.repository.findOne({ where: { autentiqueId } });
+    if (!contract) {
+      throw new NotFoundException(
+        `Not Found contract with this autentique id: ${autentiqueId}`,
+      );
+    }
+    return this.repository.save({
+      ...contract,
+      signatureStatus: status,
+    });
+  }
+
+  async createContractInDatabase(
+    type: 'subscription' | 'unique',
+  ): Promise<AutentiqueEntity> {
+    return await this.repository.save({
+      type,
+      signatureStatus: AutentiqueStatus.PENDING,
+    });
+  }
+
+  async updateContractWithNullAutentiqueId(
+    customerId: string,
+    autentiqueId: string,
+  ): Promise<AutentiqueEntity> {
+    const contract = await this.repository.findOne({
+      relations: {
+        subscription: true,
+      },
+      where: {
+        subscription: { customerId },
+        signatureStatus: AutentiqueStatus.PENDING,
+        autentiqueId: IsNull(),
+      },
+    });
+    console.log(contract);
+    if (!contract) {
+      throw new NotFoundException(
+        `Not Found contract for this customerId with autentique_id null`,
+      );
+    }
+
+    return this.repository.save({ ...contract, autentiqueId });
+  }
+
+  async findDocument(contractId: string): Promise<ReturnDocumentDto> {
+    const query = `
+      query {
+        document(id: "${contractId}") {
+          id
+          name
+          refusable
+          sortable
+          created_at
+          signatures {
+            public_id
+            name
+            email
+            signed { ...event }
+            rejected { ...event }
+          }
+        }
+      }
+      
+      fragment event on Event {
+        ip
+        port
+        reason
+        created_at
+      }
+    `;
+    const headers = {
+      Authorization: `Bearer ${this.AUTENTIQUE_TOKEN}`,
+    };
+
+    const { data } = await this.httpService.axiosRef.post(
+      this.AUTENTIQUE_URL,
+      {
+        query,
+      },
+      { headers },
+    );
+    console.log(data.data.document.signatures[1]);
+    return data.data.document.signatures[1];
   }
 
   async createDocument(contract: CreateContractDto) {
@@ -97,10 +201,15 @@ export class AutentiqueService {
         },
       );
       const autentiqueContract = { ...data.data.createDocument };
-      await this.subscriptionService.updateSubscriptionWithNullContractId(
+
+      await this.updateContractWithNullAutentiqueId(
         contract.customerCnpj,
         autentiqueContract.id,
       );
+      // await this.subscriptionService.updateSubscriptionWithNullContractId(
+      //   contract.customerCnpj,
+      //   autentiqueContract.id,
+      // );
       fs.unlinkSync(pathDestiny);
       console.log('Arquivo enviado para AUTENTIQUE com sucesso!');
     } catch (error) {

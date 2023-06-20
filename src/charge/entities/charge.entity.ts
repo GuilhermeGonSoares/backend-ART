@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,6 +12,7 @@ import { PaymentType } from '../../enums/payment.enum';
 import { PaymentStatus } from '../../enums/payment-status.enum';
 import { CustomerEntity } from '../../customer/entities/customer.entity';
 import { ProductEntity } from '../../product/entities/product.entity';
+import { AutentiqueEntity } from '../../autentique/entities/autentique.entity';
 
 @Entity({ name: 'charges' })
 export class ChargeEntity {
@@ -31,6 +33,9 @@ export class ChargeEntity {
 
   @Column({ name: 'final_price' })
   finalPrice: number;
+
+  @Column({ name: 'contract_id', nullable: true })
+  contractId: number;
 
   @Column({ name: 'payment_type', enum: PaymentType })
   paymentType: PaymentType;
@@ -63,4 +68,10 @@ export class ChargeEntity {
   })
   @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
   product?: ProductEntity;
+
+  @OneToOne(() => AutentiqueEntity, (autentique) => autentique.subscription, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
+  contract?: AutentiqueEntity;
 }

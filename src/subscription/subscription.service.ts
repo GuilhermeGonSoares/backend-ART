@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SubscriptionEntity } from './entities/subscription.entity';
-import { Repository, In, IsNull } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CreateSubscriptionDto } from './dtos/create-subscription.dto';
 import { CustomerService } from '../customer/customer.service';
 import { ProductService } from '../product/product.service';
@@ -15,6 +15,8 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { CreateContractDto } from '../automations/dtos/create-contract.dto';
 import { SubscriptionStatus } from '../enums/subscription-status.enum';
+import { AutentiqueService } from '../autentique/autentique.service';
+import { AutentiqueEntity } from '../autentique/entities/autentique.entity';
 @Injectable()
 export class SubscriptionService {
   constructor(
@@ -22,6 +24,7 @@ export class SubscriptionService {
     private readonly repository: Repository<SubscriptionEntity>,
     private readonly customerService: CustomerService,
     private readonly productService: ProductService,
+    private readonly autentiqueService: AutentiqueService,
     @InjectQueue('automations') private readonly automationQueue: Queue,
   ) {}
 
@@ -57,8 +60,20 @@ export class SubscriptionService {
         `Already exist subscription for this customerId: ${customerId}`,
       );
     }
+    let contract: AutentiqueEntity | null;
+    if (isAutentique) {
+      contract = await this.autentiqueService.createContractInDatabase(
+        'subscription',
+      );
+      const discount = subscriptionDto.discount;
+      const payload = new CreateContractDto(product, customer, discount);
+      await this.automationQueue.add('autentique', {
+        ...payload,
+      });
+    }
 
     const subscriptionCreated = await this.repository.save({
+      contractId: contract ? contract.id : null,
       ...subscriptionDto,
       price: product.price,
     });
@@ -86,14 +101,6 @@ export class SubscriptionService {
     //   });
     // }
 
-    if (isAutentique) {
-      const discount = subscriptionDto.discount;
-      const payload = new CreateContractDto(product, customer, discount);
-      await this.automationQueue.add('autentique', {
-        ...payload,
-      });
-    }
-
     return subscriptionCreated;
   }
 
@@ -103,43 +110,38 @@ export class SubscriptionService {
     });
   }
 
-  async updateSubscriptionStatusByContractId(
-    contractId: string,
+  async updateSubscriptionStatusByAutentiqueId(
+    autentiqueId: string,
     status: SubscriptionStatus,
   ): Promise<SubscriptionEntity> {
     const subscription = await this.repository.findOne({
-      where: { contractId },
+      where: { contract: { autentiqueId } },
     });
     if (!subscription) {
       throw new NotFoundException(
-        `Not Found subscription with this contractId`,
+        `Not Found subscription with this autentiqueId`,
       );
     }
     return this.repository.save({ ...subscription, status });
   }
 
-  async updateSubscriptionWithNullContractId(
+  async findPendingSubscriptionByCustomerId(
     customerId: string,
-    contractId: string,
   ): Promise<SubscriptionEntity> {
-    console.log('customerId', customerId);
-    console.log('contractId', contractId);
-
     const subscription = await this.repository.findOne({
       where: {
-        customerId,
         status: SubscriptionStatus.PENDING,
-        contractId: IsNull(),
+        customerId,
       },
     });
-    console.log(subscription);
+
     if (!subscription) {
       throw new NotFoundException(
-        `Not Found subscription for this customerId with contract_id null`,
+        `Not found pending subscription for this cnpj: ${customerId}`,
       );
     }
 
-    return this.repository.save({ ...subscription, contractId });
+    return subscription;
   }
 
   async findActiveSubscriptionByCustomerId(
@@ -162,6 +164,16 @@ export class SubscriptionService {
         `Not found subscription active for this customerID: ${customerId}`,
       );
     }
+
+    return subscription;
+  }
+
+  async findActiveSubscriptionByPreferredDueDate(
+    preferredDueDate: number,
+  ): Promise<SubscriptionEntity[]> {
+    const subscription = await this.repository.find({
+      where: { status: SubscriptionStatus.ACTIVE, preferredDueDate },
+    });
 
     return subscription;
   }

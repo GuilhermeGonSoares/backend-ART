@@ -12,11 +12,14 @@ import { AutentiqueModule } from './autentique/autentique.module';
 import { ContractModule } from './contract/contract.module';
 import { AutomationsModule } from './automations/automations.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync(typeOrmConfigAsync),
+    ScheduleModule.forRoot(),
     CustomerModule,
     ProductModule,
     SubscriptionModule,
@@ -27,6 +30,7 @@ import { WebhookModule } from './webhook/webhook.module';
     ContractModule,
     AutomationsModule,
     WebhookModule,
+    SchedulerModule,
   ],
   controllers: [],
   providers: [],

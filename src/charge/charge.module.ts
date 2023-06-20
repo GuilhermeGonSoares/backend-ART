@@ -14,5 +14,6 @@ import { ChargeEntity } from './entities/charge.entity';
   ],
   controllers: [ChargeController],
   providers: [ChargeService],
+  exports: [ChargeService],
 })
 export class ChargeModule {}

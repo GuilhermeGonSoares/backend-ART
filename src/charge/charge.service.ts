@@ -11,6 +11,9 @@ import { ProductService } from '../product/product.service';
 import { CreateChargeDto } from './dto/create-charge.dto';
 import { ProductType } from '../enums/product.enum';
 import { UpdateChargeDto } from './dto/update-charge.dto';
+import { SubscriptionEntity } from '../subscription/entities/subscription.entity';
+import { PaymentStatus } from '../enums/payment-status.enum';
+import { PaymentType } from '../enums/payment.enum';
 
 @Injectable()
 export class ChargeService {
@@ -45,6 +48,20 @@ export class ChargeService {
       price: product.price,
       finalPrice: product.price - discount,
     });
+  }
+
+  async createChargeForSubscription(subscription: SubscriptionEntity) {
+    const charge = this.repository.create({
+      customerId: subscription.customerId,
+      productId: subscription.productId,
+      price: subscription.price,
+      discount: subscription.discount,
+      finalPrice: subscription.price - subscription.discount,
+      paymentType: PaymentType.PIX,
+      paymentStatus: PaymentStatus.PENDING,
+    });
+
+    return await this.repository.save(charge);
   }
 
   async findChargeByCnpj(

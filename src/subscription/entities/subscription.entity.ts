@@ -4,12 +4,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { CustomerEntity } from '../../customer/entities/customer.entity';
 import { ProductEntity } from '../../product/entities/product.entity';
 import { SubscriptionStatus } from '../../enums/subscription-status.enum';
+import { AutentiqueEntity } from '../../autentique/entities/autentique.entity';
 
 @Entity({ name: 'subscriptions' })
 export class SubscriptionEntity {
@@ -21,9 +23,6 @@ export class SubscriptionEntity {
 
   @Column({ name: 'product_id' })
   productId: number;
-
-  @Column({ name: 'contract_id', nullable: true })
-  contractId: string;
 
   @Column({ enum: SubscriptionStatus, default: SubscriptionStatus.PENDING })
   status: SubscriptionStatus;
@@ -45,6 +44,9 @@ export class SubscriptionEntity {
 
   @Column({ name: 'preferred_due_date' })
   preferredDueDate: number;
+
+  @Column({ name: 'contract_id', nullable: true })
+  contractId: number;
 
   @Column({ name: 'initial_date' })
   initialDate: Date;
@@ -68,4 +70,10 @@ export class SubscriptionEntity {
   @ManyToOne(() => ProductEntity, (product) => product.subscriptions)
   @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
   product?: ProductEntity;
+
+  @OneToOne(() => AutentiqueEntity, (autentique) => autentique.subscription, {
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
+  contract?: AutentiqueEntity;
 }
