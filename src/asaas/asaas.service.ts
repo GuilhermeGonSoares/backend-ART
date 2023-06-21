@@ -1,9 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CreateCustomerDto } from '../customer/dtos/create-customer.dto';
-import { UpdateCustomerDto } from '../customer/dtos/update-customer.dto';
-import { CustomerEntity } from '../customer/entities/customer.entity';
+import { CreateAsaasClientDto } from './dtos/create-client.dto';
+import { UpdateAsaasClientDto } from './dtos/update-client.dto';
+import { CreateAsaasChargeDto } from './dtos/create-charge.dto';
 
 @Injectable()
 export class AsaasService {
@@ -18,17 +18,11 @@ export class AsaasService {
     this.headers = { access_token: this.ASAAS_KEY };
   }
 
-  async createClient(createCustomerDto: CreateCustomerDto) {
+  async createClient(createAsaasCustomerDto: CreateAsaasClientDto) {
     try {
       const url = this.ASAAS_URL + 'customers';
 
-      const data = {
-        name: createCustomerDto.name,
-        cpfCnpj: createCustomerDto.cnpj,
-        email: createCustomerDto.financeEmail,
-        phone: createCustomerDto.financePhone,
-        mobilePhone: createCustomerDto.mainPhone,
-      };
+      const data = { ...createAsaasCustomerDto };
       const response = await this.httpService.axiosRef.post(url, data, {
         headers: this.headers,
       });
@@ -39,18 +33,9 @@ export class AsaasService {
     }
   }
 
-  async updateClient(
-    customer: CustomerEntity,
-    updateCustomerDto: UpdateCustomerDto,
-  ) {
-    const url = `${this.ASAAS_URL}/customers/${customer.asaasId}`;
-    const data = {
-      name: updateCustomerDto.name ? updateCustomerDto.name : customer.name,
-      cpfCnpj: updateCustomerDto.cnpj ? updateCustomerDto.cnpj : customer.cnpj,
-      email: updateCustomerDto.financeEmail,
-      phone: updateCustomerDto.financePhone,
-      mobilePhone: updateCustomerDto.mainPhone,
-    };
+  async updateClient(updateAsaasCustomerDto: UpdateAsaasClientDto) {
+    const url = `${this.ASAAS_URL}/customers/${updateAsaasCustomerDto.asaasId}`;
+    const data = { ...updateAsaasCustomerDto };
 
     await this.httpService.axiosRef.post(url, data, { headers: this.headers });
   }
@@ -59,6 +44,19 @@ export class AsaasService {
     try {
       const url = `${this.ASAAS_URL}/customers/${asaasId}`;
       await this.httpService.axiosRef.delete(url, { headers: this.headers });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async createCharge(createCharge: CreateAsaasChargeDto) {
+    try {
+      const url = `${this.ASAAS_URL}/payments`;
+      const data = { ...createCharge };
+      const response = await this.httpService.axiosRef.post(url, data, {
+        headers: this.headers,
+      });
+      return response.data;
     } catch (error) {
       throw new BadRequestException(error);
     }

@@ -7,6 +7,7 @@ export class ReturnChargeDto {
   private id: number;
   private customerId: string;
   private productId: number;
+  private asaasId: string;
   private price: number;
   private discount: number;
   private finalPrice: number;
@@ -19,6 +20,7 @@ export class ReturnChargeDto {
     this.id = charge.id;
     this.customerId = charge.customerId;
     this.productId = charge.product ? undefined : charge.productId;
+    this.asaasId = charge.asaasId;
     this.price = charge.price;
     this.discount = charge.discount;
     this.finalPrice = charge.finalPrice;

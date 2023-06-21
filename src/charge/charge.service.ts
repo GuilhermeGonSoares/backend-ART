@@ -14,6 +14,8 @@ import { UpdateChargeDto } from './dto/update-charge.dto';
 import { SubscriptionEntity } from '../subscription/entities/subscription.entity';
 import { PaymentStatus } from '../enums/payment-status.enum';
 import { PaymentType } from '../enums/payment.enum';
+import { AsaasService } from '../asaas/asaas.service';
+import { CreateAsaasChargeDto } from '../asaas/dtos/create-charge.dto';
 
 @Injectable()
 export class ChargeService {
@@ -22,18 +24,25 @@ export class ChargeService {
     private readonly repository: Repository<ChargeEntity>,
     private readonly customerService: CustomerService,
     private readonly productService: ProductService,
+    private readonly asaasService: AsaasService,
   ) {}
 
-  async create(chargeDto: CreateChargeDto): Promise<ChargeEntity> {
+  async create(
+    chargeDto: CreateChargeDto,
+    isChargeForSubscription: boolean,
+  ): Promise<ChargeEntity> {
     const { customerId, productId } = chargeDto;
     const discount = chargeDto.discount ? chargeDto.discount : 0;
 
-    const [, product] = await Promise.all([
+    const [customer, product] = await Promise.all([
       this.customerService.findCustomerBy('cnpj', customerId),
       this.productService.findProductBy('id', productId),
     ]);
 
-    if (product.type !== ProductType.Unique) {
+    const price = product.price;
+    const finalPrice = product.price - discount;
+
+    if (!isChargeForSubscription && product.type !== ProductType.Unique) {
       throw new BadRequestException('Product must be unique');
     }
 
@@ -43,10 +52,15 @@ export class ChargeService {
       );
     }
 
+    const asaasCharge = await this.asaasService.createCharge(
+      new CreateAsaasChargeDto(chargeDto, customer.asaasId, price),
+    );
+
     return await this.repository.save({
       ...chargeDto,
-      price: product.price,
-      finalPrice: product.price - discount,
+      price,
+      finalPrice,
+      asaasId: asaasCharge.id,
     });
   }
 

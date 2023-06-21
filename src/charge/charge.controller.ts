@@ -20,7 +20,9 @@ export class ChargeController {
   async createCharge(
     @Body() chargeDto: CreateChargeDto,
   ): Promise<ReturnChargeDto> {
-    return new ReturnChargeDto(await this.chargeService.create(chargeDto));
+    return new ReturnChargeDto(
+      await this.chargeService.create(chargeDto, false),
+    );
   }
 
   @Get('customer/:customerId')

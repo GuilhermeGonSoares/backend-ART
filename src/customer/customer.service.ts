@@ -9,6 +9,8 @@ import { Repository } from 'typeorm';
 import { CreateCustomerDto } from './dtos/create-customer.dto';
 import { UpdateCustomerDto } from './dtos/update-customer.dto';
 import { AsaasService } from '../asaas/asaas.service';
+import { CreateAsaasClientDto } from '../asaas/dtos/create-client.dto';
+import { UpdateAsaasClientDto } from '../asaas/dtos/update-client.dto';
 
 @Injectable()
 export class CustomerService {
@@ -30,7 +32,7 @@ export class CustomerService {
     }
     try {
       const customerAsaas = await this.asaasService.createClient(
-        createCustomerDto,
+        new CreateAsaasClientDto(createCustomerDto),
       );
       return await this.repository.save({
         ...createCustomerDto,
@@ -90,7 +92,9 @@ export class CustomerService {
         );
       }
     }
-    await this.asaasService.updateClient(customer, updateCustomerDto);
+    await this.asaasService.updateClient(
+      new UpdateAsaasClientDto(customer, updateCustomerDto),
+    );
     return await this.repository.save({ ...customer, ...updateCustomerDto });
   }
 

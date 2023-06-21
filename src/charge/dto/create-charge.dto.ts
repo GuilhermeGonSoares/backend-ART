@@ -27,6 +27,5 @@ export class CreateChargeDto {
   paymentStatus: PaymentStatus;
 
   @IsDateString()
-  @IsOptional()
   paymentDate: string;
 }

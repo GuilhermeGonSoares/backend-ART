@@ -25,6 +25,9 @@ export class ChargeEntity {
   @Column({ name: 'product_id', nullable: true })
   productId: number;
 
+  @Column({ name: 'asaas_id' })
+  asaasId: string;
+
   @Column()
   price: number;
 
