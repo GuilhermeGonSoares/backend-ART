@@ -14,6 +14,7 @@ import { AutomationsModule } from './automations/automations.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { AsaasModule } from './asaas/asaas.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     AutomationsModule,
     WebhookModule,
     SchedulerModule,
+    AsaasModule,
   ],
   controllers: [],
   providers: [],

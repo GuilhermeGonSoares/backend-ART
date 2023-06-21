@@ -3,6 +3,7 @@ import { CustomerEntity } from '../entities/customer.entity';
 export class ReturnCustomerDto {
   private cnpj: string;
   private name: string;
+  private asaasId: string;
   private city: string;
   private uf: string;
   private mainPhone: string;
@@ -13,6 +14,7 @@ export class ReturnCustomerDto {
   constructor(customer: CustomerEntity) {
     this.cnpj = customer.cnpj;
     this.name = customer.name;
+    this.asaasId = customer.asaasId;
     this.city = customer.city;
     this.uf = customer.uf;
     this.mainPhone = customer.mainPhone;

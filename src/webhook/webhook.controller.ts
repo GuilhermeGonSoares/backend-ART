@@ -24,20 +24,8 @@ export class WebhookController {
         contractId,
         AutentiqueStatus.SIGNED,
       );
-    } else if (payload.partes[0].rejeitado) {
-      const status = SubscriptionStatus.DISABLED;
-      const contractId = payload.documento.uuid;
-      this.subscriptionService.updateSubscriptionStatusByAutentiqueId(
-        contractId,
-        status,
-      );
     }
     console.log(payload);
-    console.log('assinatura: ', payload.partes[0].assinatura);
-    console.log('assinado: ', payload.partes[0]?.assinado);
-    console.log('rejeitado', payload.partes[0]?.rejeitado);
-    console.log('visualizado', payload.partes[0]?.visualizado);
-    console.log('mail', payload.partes[0]?.mail);
     return;
   }
 }

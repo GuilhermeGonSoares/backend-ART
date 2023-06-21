@@ -17,6 +17,9 @@ export class CustomerEntity {
   @Column()
   name: string;
 
+  @Column({ name: 'asaas_id' })
+  asaasId: string;
+
   @Column()
   city: string;
 

@@ -5,12 +5,15 @@ import {
   IsEmail,
   IsUrl,
   IsEnum,
+  Validate,
 } from 'class-validator';
 import { Uf } from '../../enums/states.enum';
+import { CNPJ } from '../../utils/validates/cnpj.validation';
 
 export class CreateCustomerDto {
   @IsString()
   @Length(14, 14)
+  @Validate(CNPJ)
   cnpj: string;
 
   @IsString()

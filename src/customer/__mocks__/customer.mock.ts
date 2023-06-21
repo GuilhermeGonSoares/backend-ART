@@ -11,4 +11,5 @@ export const CustomerMock: CustomerEntity = {
   instagramProfile: 'instagram.com.br',
   createdAt: new Date(),
   updatedAt: new Date(),
+  asaasId: 'cus_1212525',
 };

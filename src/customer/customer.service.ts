@@ -8,12 +8,14 @@ import { CustomerEntity } from './entities/customer.entity';
 import { Repository } from 'typeorm';
 import { CreateCustomerDto } from './dtos/create-customer.dto';
 import { UpdateCustomerDto } from './dtos/update-customer.dto';
+import { AsaasService } from '../asaas/asaas.service';
 
 @Injectable()
 export class CustomerService {
   constructor(
     @InjectRepository(CustomerEntity)
     private readonly repository: Repository<CustomerEntity>,
+    private readonly asaasService: AsaasService,
   ) {}
 
   async create(createCustomerDto: CreateCustomerDto): Promise<CustomerEntity> {
@@ -26,8 +28,17 @@ export class CustomerService {
         'Already exist customer with cpnj or email',
       );
     }
-
-    return await this.repository.save({ ...createCustomerDto });
+    try {
+      const customerAsaas = await this.asaasService.createClient(
+        createCustomerDto,
+      );
+      return await this.repository.save({
+        ...createCustomerDto,
+        asaasId: customerAsaas.id,
+      });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async list(): Promise<CustomerEntity[]> {
@@ -79,11 +90,13 @@ export class CustomerService {
         );
       }
     }
+    await this.asaasService.updateClient(customer, updateCustomerDto);
     return await this.repository.save({ ...customer, ...updateCustomerDto });
   }
 
   async delete(cnpj: string): Promise<CustomerEntity> {
     const customer = await this.findCustomerBy('cnpj', cnpj);
+    await this.asaasService.deleteClient(customer.asaasId);
 
     return await this.repository.remove(customer);
   }
