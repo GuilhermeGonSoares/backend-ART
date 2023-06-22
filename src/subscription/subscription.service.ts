@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SubscriptionEntity } from './entities/subscription.entity';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Between } from 'typeorm';
 import { CreateSubscriptionDto } from './dtos/create-subscription.dto';
 import { CustomerService } from '../customer/customer.service';
 import { ProductService } from '../product/product.service';
@@ -66,7 +66,12 @@ export class SubscriptionService {
         'subscription',
       );
       const discount = subscriptionDto.discount;
-      const payload = new CreateContractDto(product, customer, discount);
+      const payload = new CreateContractDto(
+        product,
+        customer,
+        discount,
+        'subscription',
+      );
       await this.automationQueue.add('autentique', {
         ...payload,
       });
@@ -172,7 +177,10 @@ export class SubscriptionService {
     preferredDueDate: number,
   ): Promise<SubscriptionEntity[]> {
     const subscription = await this.repository.find({
-      where: { status: SubscriptionStatus.ACTIVE, preferredDueDate },
+      where: {
+        status: SubscriptionStatus.ACTIVE,
+        preferredDueDate: Between(preferredDueDate, preferredDueDate + 7),
+      },
     });
 
     return subscription;

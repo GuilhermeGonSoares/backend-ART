@@ -16,6 +16,10 @@ import { PaymentStatus } from '../enums/payment-status.enum';
 import { PaymentType } from '../enums/payment.enum';
 import { AsaasService } from '../asaas/asaas.service';
 import { CreateAsaasChargeDto } from '../asaas/dtos/create-charge.dto';
+import { AutentiqueService } from '../autentique/autentique.service';
+import { CreateContractDto } from '../automations/dtos/create-contract.dto';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class ChargeService {
@@ -25,13 +29,12 @@ export class ChargeService {
     private readonly customerService: CustomerService,
     private readonly productService: ProductService,
     private readonly asaasService: AsaasService,
+    private readonly autentiqueService: AutentiqueService,
+    @InjectQueue('automations') private readonly automationQueue: Queue,
   ) {}
 
-  async create(
-    chargeDto: CreateChargeDto,
-    isChargeForSubscription: boolean,
-  ): Promise<ChargeEntity> {
-    const { customerId, productId } = chargeDto;
+  async create(chargeDto: CreateChargeDto): Promise<ChargeEntity> {
+    const { customerId, productId, isAutentique } = chargeDto;
     const discount = chargeDto.discount ? chargeDto.discount : 0;
 
     const [customer, product] = await Promise.all([
@@ -42,7 +45,7 @@ export class ChargeService {
     const price = product.price;
     const finalPrice = product.price - discount;
 
-    if (!isChargeForSubscription && product.type !== ProductType.Unique) {
+    if (product.type !== ProductType.Unique) {
       throw new BadRequestException('Product must be unique');
     }
 
@@ -52,30 +55,85 @@ export class ChargeService {
       );
     }
 
-    const asaasCharge = await this.asaasService.createCharge(
-      new CreateAsaasChargeDto(chargeDto, customer.asaasId, price),
-    );
+    if (!isAutentique) {
+      const asaasCharge = await this.asaasService.createCharge(
+        new CreateAsaasChargeDto(chargeDto, customer.asaasId, price),
+      );
 
+      return await this.repository.save({
+        ...chargeDto,
+        price,
+        finalPrice,
+        asaasId: asaasCharge.id,
+      });
+    }
+
+    const contract = await this.autentiqueService.createContractInDatabase(
+      'unique',
+    );
+    const payload = new CreateContractDto(
+      product,
+      customer,
+      discount,
+      'unique',
+    );
+    await this.automationQueue.add('autentique', {
+      ...payload,
+    });
     return await this.repository.save({
       ...chargeDto,
       price,
       finalPrice,
-      asaasId: asaasCharge.id,
+      contractId: contract.id,
     });
   }
 
   async createChargeForSubscription(subscription: SubscriptionEntity) {
+    const currentDate = new Date();
+    const dueDay = String(subscription.preferredDueDate).padStart(2, '0');
+    const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const currentYear = currentDate.getFullYear();
+
+    const paymentDate = new Date(`${currentYear}-${currentMonth}-${dueDay}`);
+
+    const chargeExist = await this.repository.findOne({
+      where: {
+        subscriptionId: subscription.id,
+        paymentDate,
+      },
+    });
+
+    if (chargeExist) {
+      throw new BadRequestException(
+        `Already exist charge for this subscription this month`,
+      );
+    }
+
     const charge = this.repository.create({
       customerId: subscription.customerId,
       productId: subscription.productId,
+      subscriptionId: subscription.id,
       price: subscription.price,
       discount: subscription.discount,
       finalPrice: subscription.price - subscription.discount,
       paymentType: PaymentType.PIX,
       paymentStatus: PaymentStatus.PENDING,
+      paymentDate,
     });
 
-    return await this.repository.save(charge);
+    const chargeDto = new CreateChargeDto();
+    chargeDto.convertChargeToChargeDto(charge);
+
+    const customer = await this.customerService.findCustomerBy(
+      'cnpj',
+      subscription.customerId,
+    );
+
+    const asaasCharge = await this.asaasService.createCharge(
+      new CreateAsaasChargeDto(chargeDto, customer.asaasId, subscription.price),
+    );
+
+    return await this.repository.save({ ...charge, asaasId: asaasCharge.id });
   }
 
   async findChargeByCnpj(
@@ -147,6 +205,8 @@ export class ChargeService {
 
   async delete(id: number): Promise<ChargeEntity> {
     const charge = await this.findChargeById(id);
+
+    await this.asaasService.deleteCharge(charge.asaasId);
 
     return await this.repository.remove(charge);
   }

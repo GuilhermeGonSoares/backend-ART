@@ -13,6 +13,7 @@ import { PaymentStatus } from '../../enums/payment-status.enum';
 import { CustomerEntity } from '../../customer/entities/customer.entity';
 import { ProductEntity } from '../../product/entities/product.entity';
 import { AutentiqueEntity } from '../../autentique/entities/autentique.entity';
+import { SubscriptionEntity } from '../../subscription/entities/subscription.entity';
 
 @Entity({ name: 'charges' })
 export class ChargeEntity {
@@ -25,8 +26,11 @@ export class ChargeEntity {
   @Column({ name: 'product_id', nullable: true })
   productId: number;
 
-  @Column({ name: 'asaas_id' })
+  @Column({ name: 'asaas_id', nullable: true })
   asaasId: string;
+
+  @Column({ name: 'subscription_id', nullable: true })
+  subscriptionId: number;
 
   @Column()
   price: number;
@@ -50,7 +54,7 @@ export class ChargeEntity {
   })
   paymentStatus: PaymentStatus;
 
-  @Column({ name: 'payment_date', nullable: true })
+  @Column({ name: 'payment_date', nullable: false })
   paymentDate: Date;
 
   @CreateDateColumn({ name: 'created_at' })
@@ -77,4 +81,8 @@ export class ChargeEntity {
   })
   @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
   contract?: AutentiqueEntity;
+
+  @ManyToOne(() => SubscriptionEntity)
+  @JoinColumn({ name: 'subscription_id', referencedColumnName: 'id' })
+  subscriptions?: SubscriptionEntity;
 }

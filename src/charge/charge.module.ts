@@ -6,6 +6,8 @@ import { CustomerModule } from '../customer/customer.module';
 import { ProductModule } from '../product/product.module';
 import { ChargeEntity } from './entities/charge.entity';
 import { AsaasModule } from '../asaas/asaas.module';
+import { AutentiqueModule } from '../autentique/autentique.module';
+import { AutomationsModule } from '../automations/automations.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { AsaasModule } from '../asaas/asaas.module';
     CustomerModule,
     ProductModule,
     AsaasModule,
+    AutentiqueModule,
+    AutomationsModule,
   ],
   controllers: [ChargeController],
   providers: [ChargeService],

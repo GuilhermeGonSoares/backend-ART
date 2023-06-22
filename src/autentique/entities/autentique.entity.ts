@@ -29,6 +29,6 @@ export class AutentiqueEntity {
   @OneToOne(() => SubscriptionEntity, (subscription) => subscription.contract)
   subscription?: SubscriptionEntity;
 
-  @OneToOne(() => ChargeEntity)
+  @OneToOne(() => ChargeEntity, (charge) => charge.contract)
   charge?: ChargeEntity;
 }

@@ -11,11 +11,13 @@ export class CreateContractDto {
   contractTimeDays?: string;
   numberOfPosts?: string;
   finalPrice: string;
+  type: 'subscription' | 'unique';
 
   constructor(
     product: ProductEntity,
     customer: CustomerEntity,
     discount: number,
+    type: 'subscription' | 'unique',
   ) {
     this.name = product.contract.name;
     this.filePath = product.contract.filePath;
@@ -26,6 +28,7 @@ export class CreateContractDto {
     this.contractTimeDays = '30';
     this.numberOfPosts = product.numberOfPosts.toString();
     this.finalPrice = (product.price - discount).toString();
+    this.type = type;
   }
 
   getCurrentDay() {

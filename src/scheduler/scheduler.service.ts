@@ -16,22 +16,22 @@ export class SchedulerService {
   ) {}
   private readonly logger = new Logger(SchedulerService.name);
 
-  @Cron('18 11 * * *', {
+  @Cron('* * * * *', {
     name: 'create-charge-for-subscription',
     timeZone: 'America/Sao_Paulo',
   })
   async scheduleChargeCreation() {
     this.logger.log('Searching for active subscriptions to generate billing');
-    const preferredDueDate = new Date().getDate() + 7;
+    const preferredDueDate = new Date().getDate();
     const subscriptions =
       await this.subscriptionService.findActiveSubscriptionByPreferredDueDate(
         preferredDueDate,
       );
     await Promise.all(
       subscriptions.map(async (subscription) => {
-        return await this.chargeService.createChargeForSubscription(
-          subscription,
-        );
+        return await this.chargeService
+          .createChargeForSubscription(subscription)
+          .catch(() => undefined);
       }),
     );
   }

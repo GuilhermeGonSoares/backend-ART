@@ -61,4 +61,13 @@ export class AsaasService {
       throw new BadRequestException(error);
     }
   }
+
+  async deleteCharge(asaasId: string) {
+    try {
+      const url = `${this.ASAAS_URL}/payments/${asaasId}`;
+      await this.httpService.axiosRef.delete(url, { headers: this.headers });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
 }

@@ -30,6 +30,23 @@ export class AutentiqueService {
     this.AUTENTIQUE_TOKEN = this.configService.get('AUTENTIQUE_TOKEN');
   }
 
+  async findContractByAutentiqueId(
+    autentiqueId: string,
+  ): Promise<AutentiqueEntity> {
+    const contract = await this.repository.findOne({
+      where: { autentiqueId },
+      relations: { charge: true, subscription: true },
+    });
+
+    if (!contract) {
+      throw new NotFoundException(
+        `Not found contract with this autentiqueId: ${autentiqueId}`,
+      );
+    }
+
+    return contract;
+  }
+
   async findContractWithPendingSignature(): Promise<AutentiqueEntity[]> {
     return await this.repository.find({
       where: {
@@ -63,18 +80,23 @@ export class AutentiqueService {
   async updateContractWithNullAutentiqueId(
     customerId: string,
     autentiqueId: string,
+    type: 'subscription' | 'unique',
   ): Promise<AutentiqueEntity> {
+    console.log('Cheguei aqui');
+    const subscription = type === 'subscription' ? { customerId } : {};
+    const charge = type === 'unique' ? { customerId } : {};
     const contract = await this.repository.findOne({
       relations: {
-        subscription: true,
+        subscription: type === 'subscription' ? true : false,
+        charge: type === 'unique' ? true : false,
       },
       where: {
-        subscription: { customerId },
+        subscription,
+        charge,
         signatureStatus: AutentiqueStatus.PENDING,
         autentiqueId: IsNull(),
       },
     });
-    console.log(contract);
     if (!contract) {
       throw new NotFoundException(
         `Not Found contract for this customerId with autentique_id null`,
@@ -205,6 +227,7 @@ export class AutentiqueService {
       await this.updateContractWithNullAutentiqueId(
         contract.customerCnpj,
         autentiqueContract.id,
+        contract.type,
       );
       // await this.subscriptionService.updateSubscriptionWithNullContractId(
       //   contract.customerCnpj,
