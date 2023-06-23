@@ -12,7 +12,6 @@ import { CNPJ } from '../../utils/validates/cnpj.validation';
 
 export class CreateCustomerDto {
   @IsString()
-  @Length(14, 14)
   @Validate(CNPJ)
   cnpj: string;
 

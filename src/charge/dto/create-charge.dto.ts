@@ -29,7 +29,7 @@ export class CreateChargeDto {
   paymentStatus: PaymentStatus;
 
   @IsDateString()
-  paymentDate: string;
+  dueDate: string;
 
   @IsBoolean()
   isAutentique?: boolean;
@@ -44,7 +44,7 @@ export class CreateChargeDto {
     this.discount = charge.discount;
     this.paymentType = charge.paymentType;
     this.paymentStatus = charge.paymentStatus;
-    this.paymentDate = this.convertDateToDateString(charge.paymentDate);
+    this.dueDate = this.convertDateToDateString(charge.dueDate);
   }
 
   private convertDateToDateString(date: Date): string {

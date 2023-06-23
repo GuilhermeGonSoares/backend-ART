@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -22,6 +23,7 @@ export class ContractService {
   private ILOVEPDF_TOKEN: string;
   private ILOVEPDF_SERVER: string;
   private ILOVEPDF_TASK_ID: string;
+  private readonly logger = new Logger(ContractService.name);
 
   constructor(
     @InjectRepository(ContractEntity)
@@ -38,7 +40,7 @@ export class ContractService {
     const filePath = path.join('./uploads', newFileName);
     fs.rename(file.path, filePath, (error) => {
       if (error) {
-        console.error('Erro ao renomear o arquivo:', error);
+        this.logger.error('Erro ao renomear o arquivo:', error);
         throw new InternalServerErrorException('Erro ao renomear o arquivo');
       }
     });
@@ -185,7 +187,7 @@ export class ContractService {
     const pathDestiny = './uploads/' + serverFilename.split('.')[0] + '.pdf';
     const pdfData = Buffer.from(downloadResponse.data, 'binary');
     fs.writeFileSync(pathDestiny, pdfData);
-    console.log('Arquivo convertido e salvo com sucesso!');
+    this.logger.log('Arquivo convertido e salvo com sucesso!');
     return pathDestiny;
   }
 }

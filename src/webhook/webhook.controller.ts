@@ -1,4 +1,4 @@
-import { Controller, HttpCode, Post, Body } from '@nestjs/common';
+import { Controller, HttpCode, Post, Body, Logger } from '@nestjs/common';
 import { SubscriptionStatus } from '../enums/subscription-status.enum';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { AutentiqueService } from '../autentique/autentique.service';
@@ -8,9 +8,15 @@ import { CustomerService } from '../customer/customer.service';
 import { AsaasService } from '../asaas/asaas.service';
 import { CreateAsaasChargeDto } from '../asaas/dtos/create-charge.dto';
 import { CreateChargeDto } from '../charge/dto/create-charge.dto';
+import { AsaasChargeWebhook } from './interfaces/asaas-charge.interface';
+import { PaymentStatus } from '../enums/payment-status.enum';
+import { UpdateChargeDto } from '../charge/dto/update-charge.dto';
+import { PaymentType } from '../enums/payment.enum';
 
 @Controller('webhook')
 export class WebhookController {
+  private readonly logger = new Logger(WebhookController.name);
+
   constructor(
     private readonly subscriptionService: SubscriptionService,
     private readonly autentiqueService: AutentiqueService,
@@ -22,6 +28,7 @@ export class WebhookController {
   @HttpCode(200)
   async handleContractSignedEvent(@Body() payload: any) {
     if (payload && payload.partes[0].assinado) {
+      this.logger.log(`Signed contract: ${payload.documento.nome}`);
       const status = SubscriptionStatus.ACTIVE;
       const autentiqueId = payload.documento.uuid;
       const contract = await this.autentiqueService.findContractByAutentiqueId(
@@ -60,5 +67,40 @@ export class WebhookController {
       }
     }
     return;
+  }
+
+  @Post('asaas')
+  @HttpCode(200)
+  async handleChargeEvent(@Body() payload: AsaasChargeWebhook) {
+    const { event, payment } = payload;
+    const updateChargeDto = new UpdateChargeDto();
+
+    if (event === 'PAYMENT_CONFIRMED') {
+      updateChargeDto.paymentStatus = PaymentStatus.CONFIRMED;
+      await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
+    } else if (event === 'PAYMENT_RECEIVED') {
+      updateChargeDto.paymentStatus = PaymentStatus.RECEIVED;
+      updateChargeDto.paymentDate = payment.paymentDate;
+      await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
+    } else if (event === 'PAYMENT_OVERDUE') {
+      updateChargeDto.paymentStatus = PaymentStatus.OVERDUE;
+      await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
+    } else if (event === 'PAYMENT_DELETED') {
+      //DELETAR COBRANÇA DO BANCO DE DADOS
+      await this.chargeService.deleteByAsaasId(payment.id);
+    } else if (event === 'PAYMENT_UPDATED') {
+      console.log(event);
+      console.log(payment);
+      updateChargeDto.dueDate = payment.dueDate;
+      updateChargeDto.paymentType =
+        payment.billingType === 'BOLETO'
+          ? PaymentType.BOLETO
+          : payment.billingType === 'PIX'
+          ? PaymentType.PIX
+          : undefined;
+      updateChargeDto.discount = payment.discount.value;
+      await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
+      // Alteração no vencimento ou valor de cobrança existente.
+    }
   }
 }

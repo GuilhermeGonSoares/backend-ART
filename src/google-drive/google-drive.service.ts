@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -21,6 +22,7 @@ export class GoogleDriveService {
   private readonly REDIRECT_URI: string;
   private readonly REFRESH_TOKEN: string;
   private readonly GOOGLE_DRIVE_KEY: string;
+  private readonly logger = new Logger(GoogleDriveService.name);
 
   constructor(
     @InjectRepository(GoogleDriveEntity)
@@ -72,7 +74,7 @@ export class GoogleDriveService {
           body: createReadStream(filePath),
         },
       });
-      console.log('Arquivo salvo no google drive com sucesso!');
+      this.logger.log('Arquivo salvo no google drive com sucesso!');
       return response.data.id;
     } catch (error) {
       throw new InternalServerErrorException(error);

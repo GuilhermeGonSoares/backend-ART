@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { IsDateLaterThan } from '../../utils/validates/finish-date.validation';
 import { SubscriptionStatus } from '../../enums/subscription-status.enum';
+import { PaymentType } from '../../enums/payment.enum';
 
 export class CreateSubscriptionDto {
   @IsString()
@@ -44,6 +45,9 @@ export class CreateSubscriptionDto {
   @IsInt()
   @Max(28)
   preferredDueDate: number;
+
+  @IsEnum(PaymentType)
+  paymentType: PaymentType;
 
   @IsDateString()
   initialDate: string;

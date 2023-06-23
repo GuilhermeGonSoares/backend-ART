@@ -12,8 +12,6 @@ import { CreateChargeDto } from './dto/create-charge.dto';
 import { ProductType } from '../enums/product.enum';
 import { UpdateChargeDto } from './dto/update-charge.dto';
 import { SubscriptionEntity } from '../subscription/entities/subscription.entity';
-import { PaymentStatus } from '../enums/payment-status.enum';
-import { PaymentType } from '../enums/payment.enum';
 import { AsaasService } from '../asaas/asaas.service';
 import { CreateAsaasChargeDto } from '../asaas/dtos/create-charge.dto';
 import { AutentiqueService } from '../autentique/autentique.service';
@@ -93,37 +91,13 @@ export class ChargeService {
     const dueDay = String(subscription.preferredDueDate).padStart(2, '0');
     const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
     const currentYear = currentDate.getFullYear();
-
-    const paymentDate = new Date(`${currentYear}-${currentMonth}-${dueDay}`);
-
-    const chargeExist = await this.repository.findOne({
-      where: {
-        subscriptionId: subscription.id,
-        paymentDate,
-      },
-    });
-
-    if (chargeExist) {
-      throw new BadRequestException(
-        `Already exist charge for this subscription this month`,
-      );
-    }
-
-    const charge = this.repository.create({
-      customerId: subscription.customerId,
-      productId: subscription.productId,
-      subscriptionId: subscription.id,
-      price: subscription.price,
-      discount: subscription.discount,
-      finalPrice: subscription.price - subscription.discount,
-      paymentType: PaymentType.PIX,
-      paymentStatus: PaymentStatus.PENDING,
-      paymentDate,
-    });
+    const dueDate = new Date(`${currentYear}-${currentMonth}-${dueDay}`);
+    dueDate.setUTCHours(3);
+    const charge = new ChargeEntity();
+    charge.setChargeFromSubscription(subscription, dueDate);
 
     const chargeDto = new CreateChargeDto();
     chargeDto.convertChargeToChargeDto(charge);
-
     const customer = await this.customerService.findCustomerBy(
       'cnpj',
       subscription.customerId,
@@ -165,14 +139,33 @@ export class ChargeService {
     return charge;
   }
 
+  async findChargeByAsaasId(asaasId: string) {
+    const charge = await this.repository.findOne({ where: { asaasId } });
+
+    if (!charge) {
+      throw new NotFoundException(
+        `Not found charge with this asaasId: ${asaasId}`,
+      );
+    }
+
+    return charge;
+  }
+
+  async updateByAsaasId(
+    asaasId: string,
+    chargeDto: UpdateChargeDto,
+  ): Promise<ChargeEntity> {
+    const charge = await this.findChargeByAsaasId(asaasId);
+
+    return await this.repository.save({ ...charge, ...chargeDto });
+  }
+
   async update(id: number, chargeDto: UpdateChargeDto): Promise<ChargeEntity> {
     const charge = await this.findChargeById(id);
     let { price } = charge;
     const { customerId, productId, discount } = chargeDto;
 
     if (customerId && customerId !== charge.customerId) {
-      console.log('oi)');
-
       await this.customerService.findCustomerBy('cnpj', customerId);
     }
 
@@ -201,6 +194,11 @@ export class ChargeService {
       price,
       finalPrice,
     });
+  }
+
+  async deleteByAsaasId(asaasId: string) {
+    const charge = await this.findChargeByAsaasId(asaasId);
+    return await this.repository.remove(charge);
   }
 
   async delete(id: number): Promise<ChargeEntity> {

@@ -13,7 +13,7 @@ export class ReturnChargeDto {
   private finalPrice: number;
   private paymentType: PaymentType;
   private paymentStatus: PaymentStatus;
-  private paymentDate: Date;
+  private dueDate: Date;
   private product?: ReturnProductDto;
 
   constructor(charge: ChargeEntity) {
@@ -26,7 +26,7 @@ export class ReturnChargeDto {
     this.finalPrice = charge.finalPrice;
     this.paymentType = charge.paymentType;
     this.paymentStatus = charge.paymentStatus;
-    this.paymentDate = charge.paymentDate;
+    this.dueDate = charge.dueDate;
     this.product = charge.product
       ? new ReturnProductDto(charge.product)
       : undefined;

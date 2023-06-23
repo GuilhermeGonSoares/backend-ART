@@ -22,25 +22,38 @@ export class SchedulerService {
   })
   async scheduleChargeCreation() {
     this.logger.log('Searching for active subscriptions to generate billing');
-    const preferredDueDate = new Date().getDate();
+    const preferredDueDate = new Date().getUTCDate();
     const subscriptions =
       await this.subscriptionService.findActiveSubscriptionByPreferredDueDate(
         preferredDueDate,
       );
+
+    const subscriptionsId = [];
+    subscriptions.forEach((subscription) =>
+      subscriptionsId.push(subscription.id),
+    );
+
     await Promise.all(
       subscriptions.map(async (subscription) => {
-        return await this.chargeService
-          .createChargeForSubscription(subscription)
-          .catch(() => undefined);
+        return await this.chargeService.createChargeForSubscription(
+          subscription,
+        );
       }),
     );
+
+    if (subscriptions.length > 0) {
+      this.logger.log(
+        `Cobrança gerada para as seguintes inscrições ativas: ${subscriptionsId}`,
+      );
+    }
   }
 
-  @Cron('18 11 * * *', {
+  @Cron('10 * * * *', {
     name: 'find-contract-expired-rejected',
     timeZone: 'America/Sao_Paulo',
   })
   async handleSignatureAutentique() {
+    this.logger.log('Searching for contract rejected');
     const contracts =
       await this.autenteiqueService.findContractWithPendingSignature();
 

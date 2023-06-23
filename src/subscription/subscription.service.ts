@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SubscriptionEntity } from './entities/subscription.entity';
-import { Repository, In, Between } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CreateSubscriptionDto } from './dtos/create-subscription.dto';
 import { CustomerService } from '../customer/customer.service';
 import { ProductService } from '../product/product.service';
@@ -176,14 +176,26 @@ export class SubscriptionService {
   async findActiveSubscriptionByPreferredDueDate(
     preferredDueDate: number,
   ): Promise<SubscriptionEntity[]> {
-    const subscription = await this.repository.find({
-      where: {
-        status: SubscriptionStatus.ACTIVE,
-        preferredDueDate: Between(preferredDueDate, preferredDueDate + 7),
-      },
-    });
+    const currentDate = new Date();
+    const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const currentYear = currentDate.getFullYear();
 
-    return subscription;
+    const subscriptions = await this.repository
+      .createQueryBuilder('s')
+      .leftJoin(
+        's.charges',
+        'c',
+        'EXTRACT(MONTH FROM c.createdAt) = :currentMonth AND EXTRACT(YEAR FROM c.createdAt) = :currentYear',
+        { currentMonth, currentYear },
+      )
+      .where('c.subscription IS NULL')
+      .andWhere('s.status = :status', { status: SubscriptionStatus.ACTIVE })
+      .andWhere('s.preferredDueDate BETWEEN :startDate AND :endDate', {
+        startDate: preferredDueDate,
+        endDate: preferredDueDate + 7,
+      })
+      .getMany();
+    return subscriptions;
   }
 
   async updateSubscription(

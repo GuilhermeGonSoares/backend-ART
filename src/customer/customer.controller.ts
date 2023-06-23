@@ -20,6 +20,7 @@ export class CustomerController {
   async createCustomer(
     @Body() createCustomerDto: CreateCustomerDto,
   ): Promise<ReturnCustomerDto> {
+    createCustomerDto.cnpj = createCustomerDto.cnpj.replace(/[^\d]+/g, '');
     return new ReturnCustomerDto(
       await this.customerService.create(createCustomerDto),
     );

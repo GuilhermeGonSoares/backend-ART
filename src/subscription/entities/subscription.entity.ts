@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -12,6 +13,8 @@ import { CustomerEntity } from '../../customer/entities/customer.entity';
 import { ProductEntity } from '../../product/entities/product.entity';
 import { SubscriptionStatus } from '../../enums/subscription-status.enum';
 import { AutentiqueEntity } from '../../autentique/entities/autentique.entity';
+import { ChargeEntity } from '../../charge/entities/charge.entity';
+import { PaymentType } from '../../enums/payment.enum';
 
 @Entity({ name: 'subscriptions' })
 export class SubscriptionEntity {
@@ -45,6 +48,13 @@ export class SubscriptionEntity {
   @Column({ name: 'preferred_due_date' })
   preferredDueDate: number;
 
+  @Column({
+    name: 'payment_type',
+    enum: PaymentType,
+    default: PaymentType.BOLETO,
+  })
+  paymentType: PaymentType;
+
   @Column({ name: 'contract_id', nullable: true })
   contractId: number;
 
@@ -76,4 +86,7 @@ export class SubscriptionEntity {
   })
   @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
   contract?: AutentiqueEntity;
+
+  @OneToMany(() => ChargeEntity, (charge) => charge.subscription)
+  charges?: ChargeEntity;
 }

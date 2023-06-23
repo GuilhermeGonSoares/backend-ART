@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -19,6 +20,7 @@ import { ReturnDocumentDto } from './dtos/return-document.dto';
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';
   private readonly AUTENTIQUE_TOKEN: string;
+  private readonly logger = new Logger(AutentiqueService.name);
 
   constructor(
     @InjectRepository(AutentiqueEntity)
@@ -82,7 +84,6 @@ export class AutentiqueService {
     autentiqueId: string,
     type: 'subscription' | 'unique',
   ): Promise<AutentiqueEntity> {
-    console.log('Cheguei aqui');
     const subscription = type === 'subscription' ? { customerId } : {};
     const charge = type === 'unique' ? { customerId } : {};
     const contract = await this.repository.findOne({
@@ -143,7 +144,6 @@ export class AutentiqueService {
       },
       { headers },
     );
-    console.log(data.data.document.signatures[1]);
     return data.data.document.signatures[1];
   }
 
@@ -234,7 +234,7 @@ export class AutentiqueService {
       //   autentiqueContract.id,
       // );
       fs.unlinkSync(pathDestiny);
-      console.log('Arquivo enviado para AUTENTIQUE com sucesso!');
+      this.logger.log('Arquivo enviado para AUTENTIQUE com sucesso!');
     } catch (error) {
       throw new InternalServerErrorException(error);
     }

@@ -10,6 +10,7 @@ export class CNPJ implements ValidatorConstraintInterface {
     const firstMultiplication = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     const secondMultiplication = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
     const cnpjWithoutFormatting = cnpj.replace(/[^\d]+/g, '');
+
     if (cnpjWithoutFormatting.length != 14) {
       return false;
     }

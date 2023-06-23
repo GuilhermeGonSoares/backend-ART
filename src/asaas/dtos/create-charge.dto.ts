@@ -22,7 +22,7 @@ export class CreateAsaasChargeDto {
     this.customer = asaasCustomerId;
     this.billingType = chargeDto.paymentType;
     this.value = value;
-    this.dueDate = chargeDto.paymentDate;
+    this.dueDate = chargeDto.dueDate;
     this.discount = {
       value: chargeDto.discount,
       type: 'FIXED',

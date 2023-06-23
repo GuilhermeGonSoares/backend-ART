@@ -44,6 +44,9 @@ export class ChargeEntity {
   @Column({ name: 'contract_id', nullable: true })
   contractId: number;
 
+  @Column({ name: 'due_date', nullable: false })
+  dueDate: Date;
+
   @Column({ name: 'payment_type', enum: PaymentType })
   paymentType: PaymentType;
 
@@ -54,7 +57,7 @@ export class ChargeEntity {
   })
   paymentStatus: PaymentStatus;
 
-  @Column({ name: 'payment_date', nullable: false })
+  @Column({ name: 'payment_date', nullable: true })
   paymentDate: Date;
 
   @CreateDateColumn({ name: 'created_at' })
@@ -82,7 +85,22 @@ export class ChargeEntity {
   @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
   contract?: AutentiqueEntity;
 
-  @ManyToOne(() => SubscriptionEntity)
+  @ManyToOne(() => SubscriptionEntity, (subscription) => subscription.charges)
   @JoinColumn({ name: 'subscription_id', referencedColumnName: 'id' })
-  subscriptions?: SubscriptionEntity;
+  subscription?: SubscriptionEntity;
+
+  public setChargeFromSubscription(
+    subscription: SubscriptionEntity,
+    dueDate: Date,
+  ) {
+    this.customerId = subscription.customerId;
+    this.productId = subscription.productId;
+    this.subscriptionId = subscription.id;
+    this.price = subscription.price;
+    this.discount = subscription.discount;
+    this.finalPrice = subscription.price - subscription.discount;
+    this.paymentType = subscription.paymentType;
+    this.paymentStatus = PaymentStatus.PENDING;
+    this.dueDate = dueDate;
+  }
 }
