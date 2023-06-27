@@ -7,6 +7,9 @@ import { ConfigService } from '@nestjs/config';
 import { AutentiqueModule } from '../autentique/autentique.module';
 import { GoogleDriveModule } from '../google-drive/google-drive.module';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
+import { AutomationsController } from './automations.controller';
+import { AutomationsService } from './automations.service';
+import { SubscriptionModule } from '../subscription/subscription.module';
 
 @Module({
   imports: [
@@ -24,14 +27,22 @@ import { WhatsappModule } from '../whatsapp/whatsapp.module';
     }),
     WhatsappModule,
     GoogleDriveModule,
+    forwardRef(() => SubscriptionModule),
     forwardRef(() => AutentiqueModule),
   ],
-  providers: [CreateDriveConsumer, CreateGroupConsumer, CreateContractConsumer],
+  providers: [
+    CreateDriveConsumer,
+    CreateGroupConsumer,
+    CreateContractConsumer,
+    AutomationsService,
+  ],
   exports: [
     CreateDriveConsumer,
     CreateGroupConsumer,
     CreateContractConsumer,
+    AutomationsService,
     BullModule.registerQueue(),
   ],
+  controllers: [AutomationsController],
 })
 export class AutomationsModule {}

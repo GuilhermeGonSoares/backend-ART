@@ -60,25 +60,24 @@ export class SubscriptionService {
         `Already exist subscription for this customerId: ${customerId}`,
       );
     }
-    let contract: AutentiqueEntity | null;
-    if (isAutentique) {
-      contract = await this.autentiqueService.createContractInDatabase(
-        'subscription',
-      );
-      const discount = subscriptionDto.discount;
-      const payload = new CreateContractDto(
-        product,
-        customer,
-        discount,
-        'subscription',
-      );
-      await this.automationQueue.add('autentique', {
-        ...payload,
-      });
-    }
+    const contract = await this.autentiqueService.createContractInDatabase(
+      ProductType.Subscription,
+    );
+    // if (isAutentique) {
+    //   const discount = subscriptionDto.discount;
+    //   const payload = new CreateContractDto(
+    //     product,
+    //     customer,
+    //     discount,
+    //     ProductType.Subscription,
+    //   );
+    //   await this.automationQueue.add('autentique', {
+    //     ...payload,
+    //   });
+    // }
 
     const subscriptionCreated = await this.repository.save({
-      contractId: contract ? contract.id : null,
+      contractId: contract.id,
       ...subscriptionDto,
       price: product.price,
     });

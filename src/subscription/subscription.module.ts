@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { SubscriptionController } from './subscription.controller';
 import { SubscriptionService } from './subscription.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,7 +14,7 @@ import { AutentiqueModule } from '../autentique/autentique.module';
     TypeOrmModule.forFeature([SubscriptionEntity]),
     CustomerModule,
     ProductModule,
-    AutomationsModule,
+    forwardRef(() => AutomationsModule),
     ChargeModule,
     AutentiqueModule,
   ],

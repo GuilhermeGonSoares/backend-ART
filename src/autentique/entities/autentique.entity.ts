@@ -2,6 +2,7 @@ import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { AutentiqueStatus } from '../../enums/autentique-contract.enum';
 import { SubscriptionEntity } from '../../subscription/entities/subscription.entity';
 import { ChargeEntity } from '../../charge/entities/charge.entity';
+import { ProductType } from '../../enums/product.enum';
 
 @Entity({ name: 'autentique_contract' })
 export class AutentiqueEntity {
@@ -23,7 +24,7 @@ export class AutentiqueEntity {
   signatureStatus: AutentiqueStatus;
 
   @Column()
-  type: 'subscription' | 'unique';
+  type: ProductType;
 
   //Relationship
   @OneToOne(() => SubscriptionEntity, (subscription) => subscription.contract)

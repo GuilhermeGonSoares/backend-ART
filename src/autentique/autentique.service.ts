@@ -16,6 +16,7 @@ import { AutentiqueEntity } from './entities/autentique.entity';
 import { IsNull, Repository } from 'typeorm';
 import { AutentiqueStatus } from '../enums/autentique-contract.enum';
 import { ReturnDocumentDto } from './dtos/return-document.dto';
+import { ProductType } from '../enums/product.enum';
 @Injectable()
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';
@@ -70,9 +71,7 @@ export class AutentiqueService {
     });
   }
 
-  async createContractInDatabase(
-    type: 'subscription' | 'unique',
-  ): Promise<AutentiqueEntity> {
+  async createContractInDatabase(type: ProductType): Promise<AutentiqueEntity> {
     return await this.repository.save({
       type,
       signatureStatus: AutentiqueStatus.PENDING,
@@ -82,14 +81,15 @@ export class AutentiqueService {
   async updateContractWithNullAutentiqueId(
     customerId: string,
     autentiqueId: string,
-    type: 'subscription' | 'unique',
+    type: ProductType,
   ): Promise<AutentiqueEntity> {
-    const subscription = type === 'subscription' ? { customerId } : {};
-    const charge = type === 'unique' ? { customerId } : {};
+    const subscription =
+      type === ProductType.Subscription ? { customerId } : {};
+    const charge = type === ProductType.Unique ? { customerId } : {};
     const contract = await this.repository.findOne({
       relations: {
-        subscription: type === 'subscription' ? true : false,
-        charge: type === 'unique' ? true : false,
+        subscription: type === ProductType.Subscription ? true : false,
+        charge: type === ProductType.Unique ? true : false,
       },
       where: {
         subscription,
@@ -238,5 +238,17 @@ export class AutentiqueService {
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
+  }
+
+  async updateForNullAutentiqueId(id: number) {
+    const contract = await this.repository.findOne({ where: { id } });
+
+    if (!contract) {
+      throw new NotFoundException(
+        `Not found autentique contract with this: ${id}`,
+      );
+    }
+
+    return await this.repository.save({ ...contract, autentiqueId: null });
   }
 }

@@ -67,13 +67,13 @@ export class ChargeService {
     }
 
     const contract = await this.autentiqueService.createContractInDatabase(
-      'unique',
+      ProductType.Unique,
     );
     const payload = new CreateContractDto(
       product,
       customer,
       discount,
-      'unique',
+      ProductType.Unique,
     );
     await this.automationQueue.add('autentique', {
       ...payload,

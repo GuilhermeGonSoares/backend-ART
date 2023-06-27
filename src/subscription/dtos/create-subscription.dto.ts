@@ -43,7 +43,7 @@ export class CreateSubscriptionDto {
   extraCosts: number;
 
   @IsInt()
-  @Max(28)
+  @Max(30)
   preferredDueDate: number;
 
   @IsEnum(PaymentType)

@@ -1,4 +1,5 @@
 import { CustomerEntity } from '../../customer/entities/customer.entity';
+import { ProductType } from '../../enums/product.enum';
 import { ProductEntity } from '../../product/entities/product.entity';
 
 export class CreateContractDto {
@@ -11,13 +12,13 @@ export class CreateContractDto {
   contractTimeDays?: string;
   numberOfPosts?: string;
   finalPrice: string;
-  type: 'subscription' | 'unique';
+  type: ProductType;
 
   constructor(
     product: ProductEntity,
     customer: CustomerEntity,
     discount: number,
-    type: 'subscription' | 'unique',
+    type: ProductType,
   ) {
     this.name = product.contract.name;
     this.filePath = product.contract.filePath;
