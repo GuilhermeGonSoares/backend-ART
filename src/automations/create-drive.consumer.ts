@@ -8,6 +8,7 @@ import { Job, Queue } from 'bull';
 import { GoogleDriveService } from '../google-drive/google-drive.service';
 import { CustomerEntity } from '../customer/entities/customer.entity';
 import { CreateGroupDto } from '../automations/dtos/create-group.dto';
+import { GoogleDriveEntity } from '../google-drive/entities/google-drive.entity';
 
 @Processor('automations')
 export class CreateDriveConsumer {
@@ -24,6 +25,13 @@ export class CreateDriveConsumer {
     }>,
   ) {
     const { customer } = job.data;
+    const folder: GoogleDriveEntity | undefined = await this.googleDriveService
+      .findFolderByCustomerId(customer.cnpj)
+      .catch(() => undefined);
+
+    if (folder) {
+      return folder.link;
+    }
 
     return await this.googleDriveService.createFolder(
       customer.name,

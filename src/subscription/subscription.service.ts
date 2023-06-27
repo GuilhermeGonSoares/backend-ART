@@ -39,7 +39,7 @@ export class SubscriptionService {
       isAutentique,
     } = subscriptionDto;
 
-    const [customer, product] = await Promise.all([
+    const [, product] = await Promise.all([
       this.customerService.findCustomerBy('cnpj', customerId),
       this.productService.findProductBy('id', productId),
     ]);
@@ -82,19 +82,19 @@ export class SubscriptionService {
       price: product.price,
     });
 
-    if (isCreateDrive) {
-      await this.automationQueue.add(
-        'createDrive',
-        {
-          customer,
-          productName: product.name,
-          isCreateGroup,
-        },
-        {
-          priority: 1,
-        },
-      );
-    }
+    // if (isCreateDrive) {
+    //   await this.automationQueue.add(
+    //     'createDrive',
+    //     {
+    //       customer,
+    //       productName: product.name,
+    //       isCreateGroup,
+    //     },
+    //     {
+    //       priority: 1,
+    //     },
+    //   );
+    // }
 
     // if (isCreateGroup) {
     //   const createGroupDto = new CreateGroupDto(customer, product.name, [

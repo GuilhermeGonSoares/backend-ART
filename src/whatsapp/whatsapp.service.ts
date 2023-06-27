@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -24,6 +25,7 @@ export class WhatsappService {
   private groupPhoto =
     'https://agenciaart.com.br/wp-content/uploads/2021/12/cropped-Logo-Site.png';
   private description = '';
+  private readonly logger = new Logger(WhatsappService.name);
 
   constructor(
     private readonly httpService: HttpService,
@@ -41,7 +43,13 @@ export class WhatsappService {
     customerName: string,
     links: string[],
   ): void {
-    this.description = `Grupo do projeto de *${productName}* da *${customerName}*. \n \n *Links Úteis*: \n <AQUIVAILINKS> \n *Google Drive*: \n ${links[0]} \n *Dashboard de Acompanhamento* [TR] \n \n *Agendar Reuniões* \n Link do Calendly \n \n E aí, vamos decolar? 🚀`;
+    let linkDrive: string;
+    if (!links || links.length == 0) {
+      linkDrive = ' ';
+    } else {
+      linkDrive = links[0];
+    }
+    this.description = `Grupo do projeto de *${productName}* da *${customerName}*. \n \n *Links Úteis*: \n *Google Drive*: \n ${linkDrive} \n *Dashboard de Acompanhamento* [TR] \n \n *Agendar Reuniões* \n Link do Calendly \n \n E aí, vamos decolar? 🚀`;
   }
 
   async existWhatsappNumber(phone: string): Promise<boolean> {
@@ -68,7 +76,7 @@ export class WhatsappService {
     ).catch(() => undefined);
 
     if (group) {
-      await this.updateImageGroup(group.groupId);
+      this.logger.log('User already has whatsapp group!');
       await this.updateDescriptionGroup(group.groupId);
       return group;
     }
@@ -86,7 +94,7 @@ export class WhatsappService {
     await this.updateImageGroup(createGroup.phone);
     await this.updateDescriptionGroup(createGroup.phone);
 
-    // await this.saveWhatsappRegister(createGroup, customerId);
+    await this.saveWhatsappRegister(createGroup, customerId);
 
     await this.sendMessageGroup(
       createGroup.phone,
@@ -94,7 +102,7 @@ export class WhatsappService {
       messageGroupDrive(links[0]),
       messageGroupCalendly(customerName),
     );
-    console.log('GRUPO CRIADO NO WHATSAPP');
+    this.logger.log('Whatsapp group created with success');
     return createGroup;
   }
 
@@ -103,7 +111,7 @@ export class WhatsappService {
       await this.httpService.axiosRef.post(this.url + '/send-text', {
         phone: groupId,
         message,
-        delayMessage: 3,
+        delayMessage: 5,
       });
     });
   }

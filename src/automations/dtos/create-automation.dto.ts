@@ -6,7 +6,7 @@ export class CreateAutomationDto {
   type: ProductType;
 
   @IsString()
-  foreignKey: string;
+  customerId: string;
 
   @IsBoolean()
   isCreateGroup?: boolean;

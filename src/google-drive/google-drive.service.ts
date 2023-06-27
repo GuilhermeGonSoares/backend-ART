@@ -153,7 +153,7 @@ export class GoogleDriveService {
     );
 
     const folder = await this.saveGoogleDriveRegister(folderId, customerId);
-    console.log('GOOGLE DRIVE CRIADO');
+    this.logger.log('Google drive criado com sucesso!');
     return folder.link;
   }
 
@@ -184,7 +184,7 @@ export class GoogleDriveService {
   }
 
   async saveGoogleDriveRegister(folderId: string, customerId: string) {
-    const folder = await this.findFolderId(folderId).catch(() => undefined);
+    const folder = await this.repository.findOne({ where: { folderId } });
 
     if (folder) {
       throw new BadRequestException(`Already exist folderId: ${folderId}`);
@@ -197,11 +197,13 @@ export class GoogleDriveService {
     });
   }
 
-  async findFolderId(folderId: string) {
-    const folder = await this.repository.findOne({ where: { folderId } });
+  async findFolderByCustomerId(customerId: string) {
+    const folder = await this.repository.findOne({ where: { customerId } });
 
     if (!folder) {
-      throw new NotFoundException(`Not Found folderId: ${folderId}`);
+      throw new NotFoundException(
+        `Not Found folder by customer id: ${customerId}`,
+      );
     }
 
     return folder;

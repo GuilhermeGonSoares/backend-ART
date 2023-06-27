@@ -7,7 +7,7 @@ import { CreateAsaasChargeDto } from './dtos/create-charge.dto';
 
 @Injectable()
 export class AsaasService {
-  private readonly ASAAS_URL = 'https://sandbox.asaas.com/api/v3/';
+  private readonly ASAAS_URL = 'https://sandbox.asaas.com/api/v3';
   private readonly ASAAS_KEY: string;
   private readonly headers: { access_token: string };
   constructor(
@@ -20,7 +20,7 @@ export class AsaasService {
 
   async createClient(createAsaasCustomerDto: CreateAsaasClientDto) {
     try {
-      const url = this.ASAAS_URL + 'customers';
+      const url = `${this.ASAAS_URL}/customers`;
 
       const data = { ...createAsaasCustomerDto };
       const response = await this.httpService.axiosRef.post(url, data, {
