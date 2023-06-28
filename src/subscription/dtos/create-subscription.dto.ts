@@ -1,5 +1,4 @@
 import {
-  IsBoolean,
   IsDateString,
   IsEnum,
   IsInt,
@@ -55,16 +54,4 @@ export class CreateSubscriptionDto {
   @IsDateString()
   @Validate(IsDateLaterThan)
   finishedDate: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isCreateGroup?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  isCreateDrive?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  isAutentique?: boolean;
 }

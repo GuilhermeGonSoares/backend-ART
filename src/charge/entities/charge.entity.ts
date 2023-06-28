@@ -102,5 +102,6 @@ export class ChargeEntity {
     this.paymentType = subscription.paymentType;
     this.paymentStatus = PaymentStatus.PENDING;
     this.dueDate = dueDate;
+    this.contractId = subscription.contractId;
   }
 }

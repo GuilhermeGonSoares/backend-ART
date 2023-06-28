@@ -66,9 +66,10 @@ export class ChargeService {
     dueDate.setUTCHours(3);
     const charge = new ChargeEntity();
     charge.setChargeFromSubscription(subscription, dueDate);
-
+    console.log(charge);
     const chargeDto = new CreateChargeDto();
     chargeDto.convertChargeToChargeDto(charge);
+    console.log('chargeDto', chargeDto);
     const customer = await this.customerService.findCustomerBy(
       'cnpj',
       subscription.customerId,

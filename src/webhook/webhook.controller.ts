@@ -34,6 +34,7 @@ export class WebhookController {
       const contract = await this.autentiqueService.findContractByAutentiqueId(
         autentiqueId,
       );
+
       if (contract.type === 'unique') {
         const { customerId } = contract.charge;
         const customer = await this.customerService.findCustomerBy(

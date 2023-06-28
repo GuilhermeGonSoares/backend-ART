@@ -41,6 +41,7 @@ export class CreateChargeDto {
     this.paymentType = charge.paymentType;
     this.paymentStatus = charge.paymentStatus;
     this.dueDate = this.convertDateToDateString(charge.dueDate);
+    this.contractId = charge.contractId ? charge.contractId : null;
   }
 
   private convertDateToDateString(date: Date): string {
