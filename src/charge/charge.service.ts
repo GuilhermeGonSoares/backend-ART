@@ -14,8 +14,6 @@ import { UpdateChargeDto } from './dto/update-charge.dto';
 import { SubscriptionEntity } from '../subscription/entities/subscription.entity';
 import { AsaasService } from '../asaas/asaas.service';
 import { CreateAsaasChargeDto } from '../asaas/dtos/create-charge.dto';
-import { AutentiqueService } from '../autentique/autentique.service';
-import { CreateContractDto } from '../automations/dtos/create-contract.dto';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 
@@ -27,15 +25,14 @@ export class ChargeService {
     private readonly customerService: CustomerService,
     private readonly productService: ProductService,
     private readonly asaasService: AsaasService,
-    private readonly autentiqueService: AutentiqueService,
     @InjectQueue('automations') private readonly automationQueue: Queue,
   ) {}
 
   async create(chargeDto: CreateChargeDto): Promise<ChargeEntity> {
-    const { customerId, productId, isAutentique } = chargeDto;
+    const { customerId, productId } = chargeDto;
     const discount = chargeDto.discount ? chargeDto.discount : 0;
 
-    const [customer, product] = await Promise.all([
+    const [, product] = await Promise.all([
       this.customerService.findCustomerBy('cnpj', customerId),
       this.productService.findProductBy('id', productId),
     ]);
@@ -53,36 +50,10 @@ export class ChargeService {
       );
     }
 
-    if (!isAutentique) {
-      const asaasCharge = await this.asaasService.createCharge(
-        new CreateAsaasChargeDto(chargeDto, customer.asaasId, price),
-      );
-
-      return await this.repository.save({
-        ...chargeDto,
-        price,
-        finalPrice,
-        asaasId: asaasCharge.id,
-      });
-    }
-
-    const contract = await this.autentiqueService.createContractInDatabase(
-      ProductType.Unique,
-    );
-    const payload = new CreateContractDto(
-      product,
-      customer,
-      discount,
-      ProductType.Unique,
-    );
-    await this.automationQueue.add('autentique', {
-      ...payload,
-    });
     return await this.repository.save({
       ...chargeDto,
       price,
       finalPrice,
-      contractId: contract.id,
     });
   }
 
@@ -129,8 +100,11 @@ export class ChargeService {
     return charge;
   }
 
-  async findChargeById(id: number): Promise<ChargeEntity> {
-    const charge = await this.repository.findOne({ where: { id } });
+  async findChargeById(id: number, isRelation: boolean): Promise<ChargeEntity> {
+    const relations = isRelation
+      ? { customer: true, product: true }
+      : undefined;
+    const charge = await this.repository.findOne({ where: { id }, relations });
 
     if (!charge) {
       throw new NotFoundException(`Not found charge with this id: ${id}`);
@@ -161,7 +135,7 @@ export class ChargeService {
   }
 
   async update(id: number, chargeDto: UpdateChargeDto): Promise<ChargeEntity> {
-    const charge = await this.findChargeById(id);
+    const charge = await this.findChargeById(id, false);
     let { price } = charge;
     const { customerId, productId, discount } = chargeDto;
 
@@ -202,7 +176,7 @@ export class ChargeService {
   }
 
   async delete(id: number): Promise<ChargeEntity> {
-    const charge = await this.findChargeById(id);
+    const charge = await this.findChargeById(id, false);
 
     await this.asaasService.deleteCharge(charge.asaasId);
 

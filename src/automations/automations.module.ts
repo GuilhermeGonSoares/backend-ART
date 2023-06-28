@@ -10,6 +10,8 @@ import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { AutomationsController } from './automations.controller';
 import { AutomationsService } from './automations.service';
 import { SubscriptionModule } from '../subscription/subscription.module';
+import { ChargeModule } from '../charge/charge.module';
+import { AsaasModule } from '../asaas/asaas.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { SubscriptionModule } from '../subscription/subscription.module';
     }),
     WhatsappModule,
     GoogleDriveModule,
+    AsaasModule,
+    forwardRef(() => ChargeModule),
     forwardRef(() => SubscriptionModule),
     forwardRef(() => AutentiqueModule),
   ],

@@ -35,8 +35,6 @@ export class WebhookController {
         autentiqueId,
       );
       if (contract.type === 'unique') {
-        console.log(contract);
-        console.log(contract.charge);
         const { customerId } = contract.charge;
         const customer = await this.customerService.findCustomerBy(
           'cnpj',
@@ -55,16 +53,20 @@ export class WebhookController {
         );
         chargeDto.asaasId = asaasCharge.id;
         await this.chargeService.update(contract.charge.id, chargeDto);
+        this.logger.log(
+          `Charge created for contract: ${payload.documento.nome}`,
+        );
       } else {
         this.subscriptionService.updateSubscriptionStatusByAutentiqueId(
           autentiqueId,
           status,
         );
-        this.autentiqueService.updateSignatureStatus(
-          autentiqueId,
-          AutentiqueStatus.SIGNED,
-        );
       }
+      this.autentiqueService.updateSignatureStatus(
+        autentiqueId,
+        AutentiqueStatus.SIGNED,
+      );
+      this.logger.log('Status signed for contract modify');
     }
     return;
   }

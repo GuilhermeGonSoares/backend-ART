@@ -13,10 +13,8 @@ import { ProductType } from '../enums/product.enum';
 import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-import { CreateContractDto } from '../automations/dtos/create-contract.dto';
 import { SubscriptionStatus } from '../enums/subscription-status.enum';
 import { AutentiqueService } from '../autentique/autentique.service';
-import { AutentiqueEntity } from '../autentique/entities/autentique.entity';
 @Injectable()
 export class SubscriptionService {
   constructor(
@@ -31,13 +29,7 @@ export class SubscriptionService {
   async create(
     subscriptionDto: CreateSubscriptionDto,
   ): Promise<SubscriptionEntity> {
-    const {
-      customerId,
-      productId,
-      isCreateGroup,
-      isCreateDrive,
-      isAutentique,
-    } = subscriptionDto;
+    const { customerId, productId } = subscriptionDto;
 
     const [, product] = await Promise.all([
       this.customerService.findCustomerBy('cnpj', customerId),
@@ -63,47 +55,12 @@ export class SubscriptionService {
     const contract = await this.autentiqueService.createContractInDatabase(
       ProductType.Subscription,
     );
-    // if (isAutentique) {
-    //   const discount = subscriptionDto.discount;
-    //   const payload = new CreateContractDto(
-    //     product,
-    //     customer,
-    //     discount,
-    //     ProductType.Subscription,
-    //   );
-    //   await this.automationQueue.add('autentique', {
-    //     ...payload,
-    //   });
-    // }
 
     const subscriptionCreated = await this.repository.save({
       contractId: contract.id,
       ...subscriptionDto,
       price: product.price,
     });
-
-    // if (isCreateDrive) {
-    //   await this.automationQueue.add(
-    //     'createDrive',
-    //     {
-    //       customer,
-    //       productName: product.name,
-    //       isCreateGroup,
-    //     },
-    //     {
-    //       priority: 1,
-    //     },
-    //   );
-    // }
-
-    // if (isCreateGroup) {
-    //   const createGroupDto = new CreateGroupDto(customer, product.name, [
-    //     linkDrive,
-    //   ]);
-    //   await this.automationQueue.add('createGroup', {
-    //     ...createGroupDto,
-    //   });
-    // }
 
     return subscriptionCreated;
   }
@@ -142,6 +99,29 @@ export class SubscriptionService {
     if (!subscription) {
       throw new NotFoundException(
         `Not found pending subscription for this cnpj: ${customerId}`,
+      );
+    }
+
+    return subscription;
+  }
+  async findOneSubscriptionById(
+    id: number,
+    isRelation: boolean,
+  ): Promise<SubscriptionEntity> {
+    const relations = isRelation
+      ? { customer: true, product: true }
+      : undefined;
+    const subscription = await this.repository.findOne({
+      where: {
+        id,
+        status: In([SubscriptionStatus.PENDING, SubscriptionStatus.ACTIVE]),
+      },
+      relations,
+    });
+
+    if (!subscription) {
+      throw new NotFoundException(
+        `Not found subscription active for this id: ${id}`,
       );
     }
 

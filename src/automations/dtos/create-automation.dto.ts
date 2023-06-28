@@ -1,12 +1,12 @@
-import { IsBoolean, IsEnum, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber } from 'class-validator';
 import { ProductType } from '../../enums/product.enum';
 
 export class CreateAutomationDto {
   @IsEnum(ProductType)
   type: ProductType;
 
-  @IsString()
-  customerId: string;
+  @IsNumber()
+  id: number;
 
   @IsBoolean()
   isCreateGroup?: boolean;

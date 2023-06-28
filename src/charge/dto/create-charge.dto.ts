@@ -1,5 +1,4 @@
 import {
-  IsBoolean,
   IsDateString,
   IsEnum,
   IsInt,
@@ -30,9 +29,6 @@ export class CreateChargeDto {
 
   @IsDateString()
   dueDate: string;
-
-  @IsBoolean()
-  isAutentique?: boolean;
 
   contractId?: number;
 

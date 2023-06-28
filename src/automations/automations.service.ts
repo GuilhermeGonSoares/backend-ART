@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ProductType } from '../enums/product.enum';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { CreateContractDto } from './dtos/create-contract.dto';
@@ -9,50 +9,92 @@ import { AutentiqueService } from '../autentique/autentique.service';
 import { ProductEntity } from '../product/entities/product.entity';
 import { CustomerEntity } from '../customer/entities/customer.entity';
 import { CreateGroupDto } from './dtos/create-group.dto';
+import { ChargeService } from '../charge/charge.service';
+import { CreateAsaasChargeDto } from '../asaas/dtos/create-charge.dto';
+import { CreateChargeDto } from '../charge/dto/create-charge.dto';
+import { AsaasService } from '../asaas/asaas.service';
+import { ChargeEntity } from '../charge/entities/charge.entity';
+import { SubscriptionEntity } from '../subscription/entities/subscription.entity';
+import { UpdateChargeDto } from '../charge/dto/update-charge.dto';
 
-type AutomationDto = {
-  product: ProductEntity;
-  customer: CustomerEntity;
+type EntityDto = {
+  product?: ProductEntity;
+  customer?: CustomerEntity;
   discount: number;
-  type: ProductType;
   contractId: number;
+};
+
+type AutomationDto = EntityDto & {
+  type: ProductType;
 };
 @Injectable()
 export class AutomationsService {
+  private readonly logger = new Logger(AutomationsService.name);
+
   constructor(
     private readonly subscriptionService: SubscriptionService,
     private readonly autentiqueService: AutentiqueService,
+    private readonly chargeService: ChargeService,
+    private readonly asaasService: AsaasService,
     @InjectQueue('automations') private readonly automationQueue: Queue,
   ) {}
 
   async createAutomations(automationDto: CreateAutomationDto) {
-    const { type, customerId } = automationDto;
-
+    const { type, id } = automationDto;
+    let charge: ChargeEntity;
+    let subscription: SubscriptionEntity;
     let entity: AutomationDto;
+
     if (type === ProductType.Subscription) {
-      const subscription =
-        await this.subscriptionService.findActiveSubscriptionByCustomerId(
-          customerId,
-          true,
+      subscription = await this.subscriptionService.findOneSubscriptionById(
+        id,
+        true,
+      );
+
+      entity = this.mapToAutomationDto(subscription, type);
+    } else if (type === ProductType.Unique) {
+      charge = await this.chargeService.findChargeById(id, true);
+      if (automationDto.isAutentique && !charge.contractId) {
+        const contract = await this.autentiqueService.createContractInDatabase(
+          ProductType.Unique,
         );
-      entity = {
-        customer: subscription.customer,
-        product: subscription.product,
-        discount: subscription.discount,
-        contractId: subscription.contractId,
-        type,
-      };
+        const chargeDto = new UpdateChargeDto();
+        chargeDto.contractId = contract.id;
+        await this.chargeService.update(id, chargeDto);
+        this.logger.log('Charge contract successfully created in the database');
+        charge.contractId = contract.id;
+      }
+      entity = this.mapToAutomationDto(charge, type);
     }
 
-    if (automationDto.isAutentique && entity.contractId) {
+    if (automationDto.isAutentique) {
       await this.createAutentique(entity);
     }
 
-    if (automationDto.isCreateDrive) {
+    if (!automationDto.isAutentique && type === ProductType.Unique) {
+      const chargeDto = new CreateChargeDto();
+      chargeDto.convertChargeToChargeDto(charge);
+      const asaasCharge = await this.asaasService.createCharge(
+        new CreateAsaasChargeDto(
+          chargeDto,
+          charge.customer.asaasId,
+          charge.product.price,
+        ),
+      );
+      chargeDto.asaasId = asaasCharge.id;
+      await this.chargeService.update(id, chargeDto);
+      this.logger.log('Charge for single order successfully created');
+    }
+
+    if (automationDto.isCreateDrive && type === ProductType.Subscription) {
       await this.createGoogleDrive(entity);
     }
 
-    if (automationDto.isCreateGroup && !automationDto.isCreateDrive) {
+    if (
+      automationDto.isCreateGroup &&
+      !automationDto.isCreateDrive &&
+      type === ProductType.Subscription
+    ) {
       this.createGroupWhatsapp(entity);
     }
   }
@@ -96,5 +138,18 @@ export class AutomationsService {
       },
       { lifo: true },
     );
+  }
+
+  private mapToAutomationDto<T extends EntityDto>(
+    entity: T,
+    type: ProductType,
+  ): AutomationDto {
+    return {
+      customer: entity.customer,
+      product: entity.product,
+      discount: entity.discount,
+      contractId: entity.contractId,
+      type: type,
+    };
   }
 }
