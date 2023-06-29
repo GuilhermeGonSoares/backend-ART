@@ -234,7 +234,9 @@ export class AutentiqueService {
       //   autentiqueContract.id,
       // );
       fs.unlinkSync(pathDestiny);
-      this.logger.log('Arquivo enviado para AUTENTIQUE com sucesso!');
+      this.logger.log(
+        `Arquivo do usuário: ${contract.customerName} enviado para AUTENTIQUE com sucesso!`,
+      );
     } catch (error) {
       throw new InternalServerErrorException(error);
     }

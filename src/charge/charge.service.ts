@@ -16,6 +16,7 @@ import { AsaasService } from '../asaas/asaas.service';
 import { CreateAsaasChargeDto } from '../asaas/dtos/create-charge.dto';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { PaymentStatus } from '../enums/payment-status.enum';
 
 @Injectable()
 export class ChargeService {
@@ -66,10 +67,8 @@ export class ChargeService {
     dueDate.setUTCHours(3);
     const charge = new ChargeEntity();
     charge.setChargeFromSubscription(subscription, dueDate);
-    console.log(charge);
     const chargeDto = new CreateChargeDto();
     chargeDto.convertChargeToChargeDto(charge);
-    console.log('chargeDto', chargeDto);
     const customer = await this.customerService.findCustomerBy(
       'cnpj',
       subscription.customerId,
@@ -133,6 +132,22 @@ export class ChargeService {
     const charge = await this.findChargeByAsaasId(asaasId);
 
     return await this.repository.save({ ...charge, ...chargeDto });
+  }
+
+  async updateChargeStatusByAutentiqueId(
+    autentiqueId: string,
+    status: PaymentStatus,
+  ) {
+    const charge = await this.repository.findOne({
+      where: { contract: { autentiqueId } },
+    });
+
+    if (!charge) {
+      throw new NotFoundException(
+        `Not found charge with autentique id: ${autentiqueId}`,
+      );
+    }
+    return await this.repository.save({ ...charge, paymentStatus: status });
   }
 
   async update(id: number, chargeDto: UpdateChargeDto): Promise<ChargeEntity> {

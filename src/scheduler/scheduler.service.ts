@@ -5,6 +5,8 @@ import { SubscriptionService } from '../subscription/subscription.service';
 import { AutentiqueService } from '../autentique/autentique.service';
 import { SubscriptionStatus } from '../enums/subscription-status.enum';
 import { AutentiqueStatus } from '../enums/autentique-contract.enum';
+import { ProductType } from '../enums/product.enum';
+import { PaymentStatus } from '../enums/payment-status.enum';
 
 @Injectable()
 export class SchedulerService {
@@ -33,6 +35,12 @@ export class SchedulerService {
       subscriptionsId.push(subscription.id),
     );
 
+    if (subscriptions.length > 0) {
+      this.logger.log(
+        `Gerando cobranças para as seguintes inscrições ativas: ${subscriptionsId}`,
+      );
+    }
+
     await Promise.all(
       subscriptions.map(async (subscription) => {
         return await this.chargeService.createChargeForSubscription(
@@ -40,12 +48,6 @@ export class SchedulerService {
         );
       }),
     );
-
-    if (subscriptions.length > 0) {
-      this.logger.log(
-        `Cobrança gerada para as seguintes inscrições ativas: ${subscriptionsId}`,
-      );
-    }
   }
 
   @Cron('10 * * * *', {
@@ -62,10 +64,15 @@ export class SchedulerService {
         contract.autentiqueId,
       );
       if (document.rejected !== null) {
-        if (contract.type === 'subscription') {
+        if (contract.type === ProductType.Subscription) {
           await this.subscriptionService.updateSubscriptionStatusByAutentiqueId(
             contract.autentiqueId,
             SubscriptionStatus.DISABLED,
+          );
+        } else if (contract.type === ProductType.Unique) {
+          await this.chargeService.updateChargeStatusByAutentiqueId(
+            contract.autentiqueId,
+            PaymentStatus.REJECTED,
           );
         }
         await this.autenteiqueService.updateSignatureStatus(

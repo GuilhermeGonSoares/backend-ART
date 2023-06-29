@@ -92,8 +92,6 @@ export class WebhookController {
       //DELETAR COBRANÇA DO BANCO DE DADOS
       await this.chargeService.deleteByAsaasId(payment.id);
     } else if (event === 'PAYMENT_UPDATED') {
-      console.log(event);
-      console.log(payment);
       updateChargeDto.dueDate = payment.dueDate;
       updateChargeDto.paymentType =
         payment.billingType === 'BOLETO'

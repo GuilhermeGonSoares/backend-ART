@@ -86,15 +86,11 @@ export class AutomationsService {
       this.logger.log('Charge for single order successfully created');
     }
 
-    if (automationDto.isCreateDrive && type === ProductType.Subscription) {
+    if (automationDto.isCreateDrive) {
       await this.createGoogleDrive(entity);
     }
 
-    if (
-      automationDto.isCreateGroup &&
-      !automationDto.isCreateDrive &&
-      type === ProductType.Subscription
-    ) {
+    if (automationDto.isCreateGroup && !automationDto.isCreateDrive) {
       this.createGroupWhatsapp(entity);
     }
   }

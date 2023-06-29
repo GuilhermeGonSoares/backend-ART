@@ -76,7 +76,7 @@ export class WhatsappService {
     ).catch(() => undefined);
 
     if (group) {
-      this.logger.log('User already has whatsapp group!');
+      this.logger.log(`User: ${customerName} already has whatsapp group!`);
       await this.updateDescriptionGroup(group.groupId);
       return group;
     }
@@ -102,7 +102,9 @@ export class WhatsappService {
       messageGroupDrive(links[0]),
       messageGroupCalendly(customerName),
     );
-    this.logger.log('Whatsapp group created with success');
+    this.logger.log(
+      `Whatsapp group created with success for user: ${customerName}`,
+    );
     return createGroup;
   }
 
