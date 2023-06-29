@@ -64,8 +64,10 @@ export class AsaasService {
 
   async deleteCharge(asaasId: string) {
     try {
+      console.log('delete charge');
       const url = `${this.ASAAS_URL}/payments/${asaasId}`;
       await this.httpService.axiosRef.delete(url, { headers: this.headers });
+      console.log('charge deletada com sucesso');
     } catch (error) {
       throw new BadRequestException(error);
     }

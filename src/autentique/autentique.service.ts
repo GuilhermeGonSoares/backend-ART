@@ -78,6 +78,14 @@ export class AutentiqueService {
     });
   }
 
+  async deleteContract(id: number) {
+    const contract = await this.repository.findOne({ where: { id } });
+    if (!contract) {
+      throw new NotFoundException(`Not found contract with this ${id}`);
+    }
+    return await this.repository.remove(contract);
+  }
+
   async updateContractWithNullAutentiqueId(
     customerId: string,
     autentiqueId: string,

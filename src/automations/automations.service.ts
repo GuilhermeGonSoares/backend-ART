@@ -68,12 +68,29 @@ export class AutomationsService {
     }
 
     if (automationDto.isAutentique) {
+      //se for Charge preciso verificar se já não tem um id no asaas.
+      // se houver é necessário eu remover ele de lá uma vez que eu preciso que o usuário assine
+      if (charge.asaasId) {
+        console.log(charge.asaasId);
+        await this.asaasService.deleteCharge(charge.asaasId);
+      }
       await this.createAutentique(entity);
     }
 
     if (!automationDto.isAutentique && type === ProductType.Unique) {
+      // Preciso deletar ou atualizar a cobrança no asaas caso eu lance para uma que já tenha
+      // Se já tem um contractId na cobrança eu preciso remove-la.
       const chargeDto = new CreateChargeDto();
       chargeDto.convertChargeToChargeDto(charge);
+
+      if (charge.asaasId) {
+        await this.asaasService.deleteCharge(charge.asaasId);
+      }
+      if (charge.contractId) {
+        await this.autentiqueService.deleteContract(charge.contractId);
+        chargeDto.contractId = null;
+      }
+
       const asaasCharge = await this.asaasService.createCharge(
         new CreateAsaasChargeDto(
           chargeDto,
@@ -81,6 +98,7 @@ export class AutomationsService {
           charge.product.price,
         ),
       );
+
       chargeDto.asaasId = asaasCharge.id;
       await this.chargeService.update(id, chargeDto);
       this.logger.log('Charge for single order successfully created');
