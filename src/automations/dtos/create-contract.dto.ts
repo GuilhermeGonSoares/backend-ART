@@ -4,7 +4,7 @@ import { ProductEntity } from '../../product/entities/product.entity';
 
 export class CreateContractDto {
   name: string;
-  filePath: string;
+  fileId: string;
   customerName: string;
   customerCnpj: string;
   customerEmail: string;
@@ -21,7 +21,7 @@ export class CreateContractDto {
     type: ProductType,
   ) {
     this.name = product.contract.name;
-    this.filePath = product.contract.filePath;
+    this.fileId = product.contract.fileId;
     this.customerName = customer.name;
     this.customerCnpj = customer.cnpj;
     this.customerEmail = customer.financeEmail;

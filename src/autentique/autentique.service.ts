@@ -17,6 +17,7 @@ import { IsNull, Repository } from 'typeorm';
 import { AutentiqueStatus } from '../enums/autentique-contract.enum';
 import { ReturnDocumentDto } from './dtos/return-document.dto';
 import { ProductType } from '../enums/product.enum';
+import { GoogleDriveService } from '../google-drive/google-drive.service';
 @Injectable()
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';
@@ -29,6 +30,7 @@ export class AutentiqueService {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
     private readonly contractService: ContractService,
+    private readonly googleDriveService: GoogleDriveService,
   ) {
     this.AUTENTIQUE_TOKEN = this.configService.get('AUTENTIQUE_TOKEN');
   }
@@ -157,10 +159,15 @@ export class AutentiqueService {
 
   async createDocument(contract: CreateContractDto) {
     try {
-      const pathDestiny = await this.contractService.replacePDFVariables(
-        contract,
-        '1qx4jIYedNiSgrRovdUDDKPq7wmVjXiTP',
-      );
+      // const pathDestiny = await this.contractService.replacePDFVariables(
+      //   contract,
+      //   '1qx4jIYedNiSgrRovdUDDKPq7wmVjXiTP',
+      // );
+      const fileId =
+        await this.googleDriveService.copyAndReplaceVariablesInDocument(
+          contract,
+        );
+      const pathDestiny = await this.googleDriveService.exportToPdf(fileId);
 
       const query = `mutation CreateDocumentMutation(
         $document: DocumentInput!,
@@ -246,6 +253,7 @@ export class AutentiqueService {
         `Arquivo do usuário: ${contract.customerName} enviado para AUTENTIQUE com sucesso!`,
       );
     } catch (error) {
+      this.logger.error(error);
       throw new InternalServerErrorException(error);
     }
   }

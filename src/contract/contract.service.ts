@@ -64,7 +64,7 @@ export class ContractService {
   }
 
   async replacePDFVariables(contract: CreateContractDto, folderId: string) {
-    const copyFile = fs.readFileSync(contract.filePath);
+    const copyFile = fs.readFileSync(contract.fileId);
     const pathCopyFile = `./uploads/temp-${Date.now()}-${contract.name}`;
 
     fs.writeFileSync(pathCopyFile, copyFile);

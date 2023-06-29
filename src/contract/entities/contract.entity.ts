@@ -9,8 +9,8 @@ export class ContractEntity {
   @Column({ unique: true })
   name: string;
 
-  @Column({ name: 'file_path' })
-  filePath: string;
+  @Column({ name: 'file_id' })
+  fileId: string;
 
   //Relationship
   // 1 Contrato tem N inscrições diferentes ou N conbranças diferentes

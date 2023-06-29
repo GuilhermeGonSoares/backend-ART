@@ -5,6 +5,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ContractModule } from '../contract/contract.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AutentiqueEntity } from './entities/autentique.entity';
+import { GoogleDriveModule } from '../google-drive/google-drive.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AutentiqueEntity } from './entities/autentique.entity';
     ConfigModule,
     HttpModule,
     ContractModule,
+    GoogleDriveModule,
   ],
   providers: [AutentiqueService],
   exports: [AutentiqueService],

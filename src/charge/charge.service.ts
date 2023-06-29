@@ -194,7 +194,9 @@ export class ChargeService {
   async delete(id: number): Promise<ChargeEntity> {
     const charge = await this.findChargeById(id, false);
 
-    await this.asaasService.deleteCharge(charge.asaasId);
+    if (charge.asaasId) {
+      await this.asaasService.deleteCharge(charge.asaasId);
+    }
 
     return await this.repository.remove(charge);
   }

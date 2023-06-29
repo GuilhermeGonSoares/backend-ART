@@ -7,14 +7,16 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { google, drive_v3 } from 'googleapis';
+import { google, drive_v3, docs_v1 } from 'googleapis';
 import { GoogleDriveEntity } from './entities/google-drive.entity';
 import { Repository } from 'typeorm';
-import { createReadStream } from 'fs';
-
+import { createReadStream, createWriteStream } from 'fs';
+import * as path from 'path';
+import { CreateContractDto } from '../automations/dtos/create-contract.dto';
 @Injectable()
 export class GoogleDriveService {
   private driveClient: drive_v3.Drive;
+  private docClient: docs_v1.Docs;
   private URL_DRIVE = 'https://drive.google.com/drive/folders';
   private readonly scopes = ['https://www.googleapis.com/auth/drive'];
   private readonly CLIENT_ID: string;
@@ -34,9 +36,9 @@ export class GoogleDriveService {
     this.REDIRECT_URI = configService.get('REDIRECT_URI');
     this.REFRESH_TOKEN = configService.get('REFRESH_TOKEN');
     this.GOOGLE_DRIVE_KEY = configService.get('GOOGLE_DRIVE_KEY');
-    this.driveClient = this.createDriveClient();
+    this.createClient();
   }
-  createDriveClient() {
+  createClient() {
     const client = new google.auth.OAuth2({
       clientId: this.CLIENT_ID,
       clientSecret: this.CLIENT_SECRET,
@@ -44,11 +46,52 @@ export class GoogleDriveService {
     });
 
     client.setCredentials({ refresh_token: this.REFRESH_TOKEN });
-
-    return google.drive({
+    this.driveClient = google.drive({
       version: 'v3',
       auth: client,
     });
+
+    this.docClient = google.docs({
+      version: 'v1',
+      auth: client,
+    });
+  }
+
+  async exportToPdf(fileId: string) {
+    try {
+      const exportResponse = await this.driveClient.files.export(
+        {
+          fileId,
+          mimeType: 'application/pdf',
+        },
+        { responseType: 'stream' },
+      );
+      const fileName = `temp-${Date.now()}-arquivo.pdf`;
+      const destPath = path.resolve(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'uploads',
+        fileName,
+      );
+      const destFile = createWriteStream(destPath);
+      exportResponse.data.pipe(destFile);
+
+      return new Promise<string>((resolve, reject) => {
+        destFile.on('finish', () => {
+          this.logger.log('Arquivo exportado como PDF com sucesso!');
+          resolve(destPath);
+        });
+
+        destFile.on('error', (err) => {
+          this.logger.error('Erro ao salvar o arquivo PDF:', err);
+          reject(err);
+        });
+      });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async deleteFileFromGoogleDrive(fileId: string): Promise<void> {
@@ -81,16 +124,55 @@ export class GoogleDriveService {
     }
   }
 
-  async getFileInfo(fileId: string): Promise<ArrayBuffer> {
-    // Carrega o conteúdo do arquivo do Google Drive
-    const fileContent = await this.driveClient.files.get(
-      {
+  async copyAndReplaceVariablesInDocument(contract: CreateContractDto) {
+    try {
+      const { fileId } = contract;
+      const variables = {
+        nomeempresa: contract.customerName,
+        numerocnpj: contract.customerCnpj,
+        valor: contract.finalPrice,
+        numerodeposts: contract.numberOfPosts,
+        dataassinatura: contract.signatureDate,
+        prazoemdias: contract.contractTimeDays,
+      };
+      const copyResponse = await this.driveClient.files.copy({
         fileId,
-        alt: 'media',
-      },
-      { responseType: 'arraybuffer' },
-    );
-    return fileContent.data as ArrayBuffer;
+        requestBody: {
+          name: `${contract.name} - ${contract.customerName}`,
+          mimeType: 'application/vnd.google-apps.document',
+        },
+      });
+      const convertedFileID = copyResponse.data.id;
+      this.logger.log(
+        `Arquivo convertido para o formato do Google Docs. ID: ${convertedFileID}`,
+      );
+      const requests = [];
+
+      for (const variable in variables) {
+        if (variables.hasOwnProperty(variable)) {
+          const value = variables[variable];
+
+          requests.push({
+            replaceAllText: {
+              replaceText: value,
+              containsText: {
+                text: `{${variable}}`,
+                matchCase: true,
+              },
+            },
+          });
+        }
+      }
+      await this.docClient.documents.batchUpdate({
+        documentId: convertedFileID,
+        requestBody: {
+          requests: requests,
+        },
+      });
+      return convertedFileID;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async copyFileAndReturnYourId(folderId: string) {
