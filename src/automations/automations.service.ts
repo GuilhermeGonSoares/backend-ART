@@ -70,9 +70,13 @@ export class AutomationsService {
     if (automationDto.isAutentique) {
       //se for Charge preciso verificar se já não tem um id no asaas.
       // se houver é necessário eu remover ele de lá uma vez que eu preciso que o usuário assine
-      if (charge.asaasId) {
-        console.log(charge.asaasId);
+      if (type === ProductType.Unique && charge.asaasId) {
+        console.log(charge);
+        const chargeDto = new CreateChargeDto();
+        chargeDto.convertChargeToChargeDto(charge);
         await this.asaasService.deleteCharge(charge.asaasId);
+        chargeDto.asaasId = null;
+        await this.chargeService.update(charge.id, chargeDto);
       }
       await this.createAutentique(entity);
     }

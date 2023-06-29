@@ -90,7 +90,7 @@ export class WebhookController {
       await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
     } else if (event === 'PAYMENT_DELETED') {
       //DELETAR COBRANÇA DO BANCO DE DADOS
-      await this.chargeService.deleteByAsaasId(payment.id);
+      // await this.chargeService.deleteByAsaasId(payment.id);
     } else if (event === 'PAYMENT_UPDATED') {
       updateChargeDto.dueDate = payment.dueDate;
       updateChargeDto.paymentType =
