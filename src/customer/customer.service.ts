@@ -11,6 +11,7 @@ import { UpdateCustomerDto } from './dtos/update-customer.dto';
 import { AsaasService } from '../asaas/asaas.service';
 import { CreateAsaasClientDto } from '../asaas/dtos/create-client.dto';
 import { UpdateAsaasClientDto } from '../asaas/dtos/update-client.dto';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 
 @Injectable()
 export class CustomerService {
@@ -18,10 +19,11 @@ export class CustomerService {
     @InjectRepository(CustomerEntity)
     private readonly repository: Repository<CustomerEntity>,
     private readonly asaasService: AsaasService,
+    private readonly whatsappService: WhatsappService,
   ) {}
 
   async create(createCustomerDto: CreateCustomerDto): Promise<CustomerEntity> {
-    const { cnpj, financeEmail } = createCustomerDto;
+    const { cnpj, financeEmail, financePhone } = createCustomerDto;
 
     const customers = await this.findCustomerByCnpjOREmail(cnpj, financeEmail);
 
@@ -31,6 +33,7 @@ export class CustomerService {
       );
     }
     try {
+      await this.whatsappService.existWhatsappNumber('55' + financePhone);
       const customerAsaas = await this.asaasService.createClient(
         new CreateAsaasClientDto(createCustomerDto),
       );

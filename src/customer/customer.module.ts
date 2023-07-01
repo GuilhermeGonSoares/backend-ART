@@ -4,9 +4,14 @@ import { CustomerController } from './customer.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CustomerEntity } from './entities/customer.entity';
 import { AsaasModule } from '../asaas/asaas.module';
+import { WhatsappModule } from '../whatsapp/whatsapp.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CustomerEntity]), AsaasModule],
+  imports: [
+    TypeOrmModule.forFeature([CustomerEntity]),
+    AsaasModule,
+    WhatsappModule,
+  ],
   controllers: [CustomerController],
   providers: [CustomerService],
   exports: [CustomerService],

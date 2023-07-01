@@ -102,7 +102,7 @@ export class ChargeService {
 
   async findChargeById(id: number, isRelation: boolean): Promise<ChargeEntity> {
     const relations = isRelation
-      ? { customer: true, product: true }
+      ? { customer: true, product: true, contract: true }
       : undefined;
     const charge = await this.repository.findOne({ where: { id }, relations });
 

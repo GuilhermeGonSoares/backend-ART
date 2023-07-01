@@ -3,15 +3,19 @@ import {
   Process,
   OnQueueCompleted,
   InjectQueue,
+  OnQueueFailed,
 } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
 import { GoogleDriveService } from '../google-drive/google-drive.service';
 import { CustomerEntity } from '../customer/entities/customer.entity';
 import { CreateGroupDto } from '../automations/dtos/create-group.dto';
 import { GoogleDriveEntity } from '../google-drive/entities/google-drive.entity';
+import { Logger } from '@nestjs/common';
 
 @Processor('automations')
 export class CreateDriveConsumer {
+  private readonly logger = new Logger(CreateDriveConsumer.name);
+
   constructor(
     private readonly googleDriveService: GoogleDriveService,
     @InjectQueue('automations') private readonly automationQueue: Queue,
@@ -62,5 +66,13 @@ export class CreateDriveConsumer {
         { lifo: true },
       );
     }
+  }
+
+  @OnQueueFailed()
+  onFailed(job: Job, error: Error): void {
+    this.logger.error(
+      'Falha ao processar o job de criação do google drive',
+      error.stack,
+    );
   }
 }

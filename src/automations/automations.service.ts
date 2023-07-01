@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ProductType } from '../enums/product.enum';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { CreateContractDto } from './dtos/create-contract.dto';
@@ -16,10 +16,13 @@ import { AsaasService } from '../asaas/asaas.service';
 import { ChargeEntity } from '../charge/entities/charge.entity';
 import { SubscriptionEntity } from '../subscription/entities/subscription.entity';
 import { UpdateChargeDto } from '../charge/dto/update-charge.dto';
+import { AutentiqueEntity } from '../autentique/entities/autentique.entity';
+import { AutentiqueStatus } from '../enums/autentique-contract.enum';
 
 type EntityDto = {
   product?: ProductEntity;
   customer?: CustomerEntity;
+  contract?: AutentiqueEntity;
   discount: number;
   contractId: number;
 };
@@ -54,6 +57,7 @@ export class AutomationsService {
       entity = this.mapToAutomationDto(subscription, type);
     } else if (type === ProductType.Unique) {
       charge = await this.chargeService.findChargeById(id, true);
+
       if (automationDto.isAutentique && !charge.contractId) {
         const contract = await this.autentiqueService.createContractInDatabase(
           ProductType.Unique,
@@ -70,6 +74,9 @@ export class AutomationsService {
     if (automationDto.isAutentique) {
       //se for Charge preciso verificar se já não tem um id no asaas.
       // se houver é necessário eu remover ele de lá uma vez que eu preciso que o usuário assine
+      if (entity.contract?.signatureStatus === AutentiqueStatus.SIGNED) {
+        throw new BadRequestException(`Already have the contract signed`);
+      }
       if (type === ProductType.Unique && charge.asaasId) {
         const chargeDto = new CreateChargeDto();
         chargeDto.convertChargeToChargeDto(charge);
@@ -164,6 +171,7 @@ export class AutomationsService {
     return {
       customer: entity.customer,
       product: entity.product,
+      contract: entity.contract,
       discount: entity.discount,
       contractId: entity.contractId,
       type: type,

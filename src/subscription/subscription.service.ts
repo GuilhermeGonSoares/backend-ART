@@ -109,7 +109,7 @@ export class SubscriptionService {
     isRelation: boolean,
   ): Promise<SubscriptionEntity> {
     const relations = isRelation
-      ? { customer: true, product: true }
+      ? { customer: true, product: true, contract: true }
       : undefined;
     const subscription = await this.repository.findOne({
       where: {

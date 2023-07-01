@@ -69,43 +69,46 @@ export class WhatsappService {
     productName,
     links,
   }: CreateGroupDto) {
-    this.setDescription(productName, customerName, links);
+    try {
+      this.setDescription(productName, customerName, links);
 
-    const group: WhatsappEntity = await this.findGroupByCustomerId(
-      customerId,
-    ).catch(() => undefined);
+      const group: WhatsappEntity = await this.findGroupByCustomerId(
+        customerId,
+      ).catch(() => undefined);
 
-    if (group) {
-      this.logger.log(`User: ${customerName} already has whatsapp group!`);
-      await this.updateDescriptionGroup(group.groupId);
-      return group;
+      if (group) {
+        this.logger.log(`User: ${customerName} already has whatsapp group!`);
+        await this.updateDescriptionGroup(group.groupId);
+        return group;
+      }
+
+      const response = await this.httpService.axiosRef.post(
+        this.url + '/create-group',
+        {
+          groupName: this.groupName + customerName,
+          phones: ['55' + phone],
+        },
+      );
+      const createGroup: ResponseCreateGroupDto = response.data;
+
+      await this.updateImageGroup(createGroup.phone);
+      await this.updateDescriptionGroup(createGroup.phone);
+
+      await this.saveWhatsappRegister(createGroup, customerId);
+
+      await this.sendMessageGroup(
+        createGroup.phone,
+        messageGroupInitial(customerName),
+        messageGroupDrive(links[0]),
+        messageGroupCalendly(customerName),
+      );
+      this.logger.log(
+        `Whatsapp group created with success for user: ${customerName}`,
+      );
+      return createGroup;
+    } catch (error) {
+      this.logger.error(error);
     }
-    await this.existWhatsappNumber(phone);
-
-    const response = await this.httpService.axiosRef.post(
-      this.url + '/create-group',
-      {
-        groupName: this.groupName + customerName,
-        phones: ['55' + phone],
-      },
-    );
-    const createGroup: ResponseCreateGroupDto = response.data;
-
-    await this.updateImageGroup(createGroup.phone);
-    await this.updateDescriptionGroup(createGroup.phone);
-
-    await this.saveWhatsappRegister(createGroup, customerId);
-
-    await this.sendMessageGroup(
-      createGroup.phone,
-      messageGroupInitial(customerName),
-      messageGroupDrive(links[0]),
-      messageGroupCalendly(customerName),
-    );
-    this.logger.log(
-      `Whatsapp group created with success for user: ${customerName}`,
-    );
-    return createGroup;
   }
 
   async sendMessageGroup(groupId: string, ...messages: string[]) {
