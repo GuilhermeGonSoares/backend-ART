@@ -159,10 +159,6 @@ export class AutentiqueService {
 
   async createDocument(contract: CreateContractDto) {
     try {
-      // const pathDestiny = await this.contractService.replacePDFVariables(
-      //   contract,
-      //   '1qx4jIYedNiSgrRovdUDDKPq7wmVjXiTP',
-      // );
       const fileId =
         await this.googleDriveService.copyAndReplaceVariablesInDocument(
           contract,

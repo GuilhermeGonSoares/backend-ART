@@ -8,5 +8,6 @@ import { GoogleDriveEntity } from './entities/google-drive.entity';
   imports: [TypeOrmModule.forFeature([GoogleDriveEntity]), HttpModule],
   providers: [GoogleDriveService],
   exports: [GoogleDriveService],
+  controllers: [],
 })
 export class GoogleDriveModule {}

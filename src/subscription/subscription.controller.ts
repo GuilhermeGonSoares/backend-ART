@@ -11,7 +11,9 @@ import { SubscriptionService } from './subscription.service';
 import { CreateSubscriptionDto } from './dtos/create-subscription.dto';
 import { ReturnSubscriptionDto } from './dtos/return-subscription.dto';
 import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Subscription')
 @Controller('subscription')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}

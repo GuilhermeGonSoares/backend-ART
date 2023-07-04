@@ -1,27 +1,29 @@
-import {
-  Body,
-  Controller,
-  Param,
-  ParseFilePipe,
-  Post,
-  Res,
-  Get,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Put } from '@nestjs/common';
 import { ContractService } from './contract.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { ApiTags } from '@nestjs/swagger';
+import { UpdateContractTemplateDto } from './dtos/update-contract.dto';
+import { CreateContractTemplateDto } from './dtos/create-contract.dto';
 
+@ApiTags('Contract')
 @Controller('contract')
 export class ContractController {
   constructor(private contractService: ContractService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file')) // Nome do campo do arquivo na requisição
-  async createContractWithFile(
-    @UploadedFile(new ParseFilePipe()) file: Express.Multer.File,
+  async create(@Body() contractDto: CreateContractTemplateDto) {
+    return await this.contractService.createContract(contractDto);
+  }
+
+  @Get()
+  async list() {
+    return await this.contractService.listContracts();
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id') id: number,
+    @Body() updateDto: UpdateContractTemplateDto,
   ) {
-    return await this.contractService.saveFile(file);
+    return await this.contractService.updateContract(id, updateDto);
   }
 }

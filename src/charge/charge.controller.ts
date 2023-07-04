@@ -11,7 +11,9 @@ import { ChargeService } from './charge.service';
 import { CreateChargeDto } from './dto/create-charge.dto';
 import { ReturnChargeDto } from './dto/return-charge.dto';
 import { UpdateChargeDto } from './dto/update-charge.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Charge')
 @Controller('charge')
 export class ChargeController {
   constructor(private readonly chargeService: ChargeService) {}

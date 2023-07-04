@@ -11,7 +11,9 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { ReturnProductDto } from './dtos/return-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Product')
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}

@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import { createReadStream, createWriteStream } from 'fs';
 import * as path from 'path';
 import { CreateContractDto } from '../automations/dtos/create-contract.dto';
+import { variablesContract } from '../utils/variables-contract/variables';
 @Injectable()
 export class GoogleDriveService {
   private driveClient: drive_v3.Drive;
@@ -55,6 +56,32 @@ export class GoogleDriveService {
       version: 'v1',
       auth: client,
     });
+  }
+
+  async convert(fileId: string) {
+    const copyResponse = await this.driveClient.files.copy({
+      fileId,
+      requestBody: {
+        mimeType: 'application/vnd.google-apps.document',
+      },
+    });
+
+    // ID da cópia convertida no formato do Google Docs
+    const convertedFileID = copyResponse.data.id;
+    console.log(
+      `Arquivo convertido para o formato do Google Docs. ID: ${convertedFileID}`,
+    );
+  }
+  async checkDocumentExists(documentId: string): Promise<boolean> {
+    try {
+      await this.driveClient.files.get({
+        fileId: documentId,
+      });
+      // Se a solicitação for bem-sucedida e não lançar exceção, significa que o documento existe
+      return true;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async exportToPdf(fileId: string) {
@@ -127,14 +154,7 @@ export class GoogleDriveService {
   async copyAndReplaceVariablesInDocument(contract: CreateContractDto) {
     try {
       const { fileId } = contract;
-      const variables = {
-        nomeempresa: contract.customerName,
-        numerocnpj: contract.customerCnpj,
-        valor: contract.finalPrice,
-        numerodeposts: contract.numberOfPosts,
-        dataassinatura: contract.signatureDate,
-        prazoemdias: contract.contractTimeDays,
-      };
+      const variables = variablesContract(contract);
       const copyResponse = await this.driveClient.files.copy({
         fileId,
         requestBody: {
@@ -156,7 +176,7 @@ export class GoogleDriveService {
             replaceAllText: {
               replaceText: value,
               containsText: {
-                text: `{${variable}}`,
+                text: `{{${variable}}}`,
                 matchCase: true,
               },
             },

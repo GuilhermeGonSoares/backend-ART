@@ -12,7 +12,9 @@ import { AsaasChargeWebhook } from './interfaces/asaas-charge.interface';
 import { PaymentStatus } from '../enums/payment-status.enum';
 import { UpdateChargeDto } from '../charge/dto/update-charge.dto';
 import { PaymentType } from '../enums/payment.enum';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Webhook')
 @Controller('webhook')
 export class WebhookController {
   private readonly logger = new Logger(WebhookController.name);
