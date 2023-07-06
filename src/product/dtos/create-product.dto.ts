@@ -1,5 +1,5 @@
 import { ProductType } from '../../enums/product.enum';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -18,6 +18,6 @@ export class CreateProductDto {
   @IsOptional()
   numberOfPosts: number;
 
-  @IsString()
-  contractName: string;
+  @IsInt()
+  contractId: number;
 }

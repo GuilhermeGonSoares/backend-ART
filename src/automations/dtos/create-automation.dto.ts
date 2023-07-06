@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsNumber } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional } from 'class-validator';
 import { ProductType } from '../../enums/product.enum';
 
 export class CreateAutomationDto {
@@ -15,5 +15,6 @@ export class CreateAutomationDto {
   isCreateDrive?: boolean;
 
   @IsBoolean()
+  @IsOptional()
   isAutentique?: boolean;
 }

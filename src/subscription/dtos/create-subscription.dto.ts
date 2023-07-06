@@ -9,7 +9,10 @@ import {
   Min,
   Validate,
 } from 'class-validator';
-import { IsDateLaterThan } from '../../utils/validates/finish-date.validation';
+import {
+  IsDateLaterThan,
+  IsDateLaterThanToday,
+} from '../../utils/validates/date.validation';
 import { SubscriptionStatus } from '../../enums/subscription-status.enum';
 import { PaymentType } from '../../enums/payment.enum';
 
@@ -49,6 +52,7 @@ export class CreateSubscriptionDto {
   paymentType: PaymentType;
 
   @IsDateString()
+  @Validate(IsDateLaterThanToday)
   initialDate: string;
 
   @IsDateString()

@@ -81,7 +81,7 @@ export class CustomerService {
     updateCustomerDto: UpdateCustomerDto,
   ): Promise<CustomerEntity> {
     const customer = await this.findCustomerBy('cnpj', cnpj);
-    const { financeEmail } = updateCustomerDto;
+    const { financeEmail, financePhone } = updateCustomerDto;
 
     if (financeEmail && financeEmail !== customer.financeEmail) {
       const customer = await this.findCustomerBy(
@@ -95,10 +95,15 @@ export class CustomerService {
         );
       }
     }
-    await this.asaasService.updateClient(
-      new UpdateAsaasClientDto(customer, updateCustomerDto),
-    );
-    return await this.repository.save({ ...customer, ...updateCustomerDto });
+    try {
+      await this.whatsappService.existWhatsappNumber('55' + financePhone);
+      await this.asaasService.updateClient(
+        new UpdateAsaasClientDto(customer, updateCustomerDto),
+      );
+      return await this.repository.save({ ...customer, ...updateCustomerDto });
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async delete(cnpj: string): Promise<CustomerEntity> {

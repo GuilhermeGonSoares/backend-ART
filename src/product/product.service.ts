@@ -33,12 +33,9 @@ export class ProductService {
       );
     }
 
-    const contract = await this.contractService
-      .findContractBy('name', productDto.contractName)
-      .catch(() => undefined);
+    await this.contractService.findContractBy('id', productDto.contractId);
 
     return await this.repository.save({
-      contractId: contract?.id || null,
       ...productDto,
     });
   }

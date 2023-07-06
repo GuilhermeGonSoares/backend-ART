@@ -87,7 +87,7 @@ export class AutomationsService {
       await this.createAutentique(entity);
     }
 
-    if (!automationDto.isAutentique && type === ProductType.Unique) {
+    if (automationDto.isAutentique === false && type === ProductType.Unique) {
       // Preciso deletar ou atualizar a cobrança no asaas caso eu lance para uma que já tenha
       // Se já tem um contractId na cobrança eu preciso remove-la.
       const chargeDto = new CreateChargeDto();
@@ -115,7 +115,7 @@ export class AutomationsService {
     }
 
     if (automationDto.isCreateDrive) {
-      await this.createGoogleDrive(entity);
+      await this.createGoogleDrive(entity, automationDto.isCreateGroup);
     }
 
     if (automationDto.isCreateGroup && !automationDto.isCreateDrive) {

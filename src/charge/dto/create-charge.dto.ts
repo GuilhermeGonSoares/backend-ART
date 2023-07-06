@@ -5,10 +5,12 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Validate,
 } from 'class-validator';
 import { PaymentType } from '../../enums/payment.enum';
 import { PaymentStatus } from '../../enums/payment-status.enum';
 import { ChargeEntity } from '../entities/charge.entity';
+import { IsDateLaterThanToday } from '../../utils/validates/date.validation';
 
 export class CreateChargeDto {
   @IsString()
@@ -28,6 +30,7 @@ export class CreateChargeDto {
   paymentStatus: PaymentStatus;
 
   @IsDateString()
+  @Validate(IsDateLaterThanToday)
   dueDate: string;
 
   contractId?: number;
