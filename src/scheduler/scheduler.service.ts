@@ -18,7 +18,7 @@ export class SchedulerService {
   ) {}
   private readonly logger = new Logger(SchedulerService.name);
 
-  @Cron('* * * * *', {
+  @Cron('5 * * * *', {
     name: 'create-charge-for-subscription',
     timeZone: 'America/Sao_Paulo',
   })
