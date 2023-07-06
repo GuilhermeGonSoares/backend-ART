@@ -1,0 +1,42 @@
+services:
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    command:
+      sh -c 'npx typeorm -d ./dist/db/data-source.js migration:run && node dist/src/main.js'
+      # # Only will build development stage from our dockerfile
+      # target: development
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_DATABASE}?schema=public
+    ports:
+      - 3000:3000
+    depends_on:
+      - redis
+      - postgres
+
+  redis: # Name of container
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redis:/data
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - '5432:5432'
+    volumes:
+      - docker-nest-postgres:/var/lib/postgresql/data
+
+volumes:
+  redis:
+    driver: local
+  docker-nest-postgres:
