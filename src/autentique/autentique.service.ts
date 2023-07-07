@@ -15,9 +15,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AutentiqueEntity } from './entities/autentique.entity';
 import { IsNull, Repository } from 'typeorm';
 import { AutentiqueStatus } from '../enums/autentique-contract.enum';
-import { ReturnDocumentDto } from './dtos/return-document.dto';
 import { ProductType } from '../enums/product.enum';
 import { GoogleDriveService } from '../google-drive/google-drive.service';
+import { ContractDto, Signaturedto } from './dtos/find-document.dto';
 @Injectable()
 export class AutentiqueService {
   private readonly AUTENTIQUE_URL = 'https://api.autentique.com.br/v2/graphql';
@@ -117,7 +117,7 @@ export class AutentiqueService {
     return this.repository.save({ ...contract, autentiqueId });
   }
 
-  async findDocument(contractId: string): Promise<ReturnDocumentDto> {
+  async findDocument(contractId: string): Promise<Signaturedto> {
     const query = `
       query {
         document(id: "${contractId}") {
@@ -154,7 +154,10 @@ export class AutentiqueService {
       },
       { headers },
     );
-    return data.data.document.signatures[1];
+    const document: ContractDto = data.data.document;
+    if (document) {
+      return document.signatures[1];
+    }
   }
 
   async createDocument(contract: CreateContractDto) {

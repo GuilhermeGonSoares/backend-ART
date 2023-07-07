@@ -58,12 +58,11 @@ export class SchedulerService {
     this.logger.log('Searching for contract rejected');
     const contracts =
       await this.autenteiqueService.findContractWithPendingSignature();
-
     for (const contract of contracts) {
       const document = await this.autenteiqueService.findDocument(
         contract.autentiqueId,
       );
-      if (document.rejected !== null) {
+      if (document && document.rejected !== null) {
         if (contract.type === ProductType.Subscription) {
           await this.subscriptionService.updateSubscriptionStatusByAutentiqueId(
             contract.autentiqueId,
