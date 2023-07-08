@@ -30,7 +30,7 @@ export class GoogleDriveEntity {
   updatedAt: Date;
 
   // Relationship
-  @OneToOne(() => CustomerEntity)
+  @OneToOne(() => CustomerEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'customer_id', referencedColumnName: 'cnpj' })
   customer: CustomerEntity;
 }

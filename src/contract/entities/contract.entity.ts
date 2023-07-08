@@ -3,7 +3,7 @@ import { ProductEntity } from '../../product/entities/product.entity';
 
 @Entity({ name: 'contracts' })
 export class ContractEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column({ unique: true })

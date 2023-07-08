@@ -11,13 +11,22 @@ import { SubscriptionService } from './subscription.service';
 import { CreateSubscriptionDto } from './dtos/create-subscription.dto';
 import { ReturnSubscriptionDto } from './dtos/return-subscription.dto';
 import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiTags('Subscription')
 @Controller('subscription')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
+  @ApiOperation({ summary: 'Create a new subscription' })
+  @ApiBody({ type: CreateSubscriptionDto })
+  @ApiResponse({ status: 201, type: ReturnSubscriptionDto })
   @Post()
   async createSubscription(
     @Body() subscriptionDto: CreateSubscriptionDto,
@@ -27,6 +36,8 @@ export class SubscriptionController {
     );
   }
 
+  @ApiOperation({ summary: 'Get a list of subscriptions' })
+  @ApiResponse({ status: 200, type: ReturnSubscriptionDto, isArray: true })
   @Get()
   async listSubscription(): Promise<ReturnSubscriptionDto[]> {
     return (await this.subscriptionService.list()).map(
@@ -34,6 +45,9 @@ export class SubscriptionController {
     );
   }
 
+  @ApiOperation({ summary: 'Get a subscription by customer ID' })
+  @ApiParam({ name: 'customerId', description: 'The ID of the customer' })
+  @ApiResponse({ status: 200, type: ReturnSubscriptionDto })
   @Get('customer/:customerId')
   async showSubscriptionWithRelations(
     @Param('customerId') customerId: string,
@@ -46,6 +60,10 @@ export class SubscriptionController {
     );
   }
 
+  @ApiOperation({ summary: 'Update a subscription by customer ID' })
+  @ApiParam({ name: 'customerId', description: 'The ID of the customer' })
+  @ApiBody({ type: UpdateSubscriptionDto })
+  @ApiResponse({ status: 200, type: ReturnSubscriptionDto })
   @Put('customer/:customerId')
   async update(
     @Param('customerId') customerId: string,
@@ -59,6 +77,9 @@ export class SubscriptionController {
     );
   }
 
+  @ApiOperation({ summary: 'Delete a subscription by customer ID' })
+  @ApiParam({ name: 'customerId', description: 'The ID of the customer' })
+  @ApiResponse({ status: 200, type: ReturnSubscriptionDto })
   @Delete('customer/:customerId')
   async delete(
     @Param('customerId') customerId: string,

@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ContractEntity } from './entities/contract.entity';
 import { Repository } from 'typeorm';
@@ -16,7 +21,15 @@ export class ContractService {
   ) {}
 
   async createContract(contractDto: CreateContractTemplateDto) {
-    const { fileId } = contractDto;
+    const { name, fileId } = contractDto;
+    const contract = await this.findContractBy('name', name).catch(
+      () => undefined,
+    );
+    if (contract) {
+      throw new BadRequestException(
+        `Already exist this contract name: ${name}`,
+      );
+    }
     await this.googleService.checkDocumentExists(fileId);
 
     return await this.repository.save({ ...contractDto });

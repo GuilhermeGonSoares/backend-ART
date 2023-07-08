@@ -11,24 +11,37 @@ import { PaymentType } from '../../enums/payment.enum';
 import { PaymentStatus } from '../../enums/payment-status.enum';
 import { ChargeEntity } from '../entities/charge.entity';
 import { IsDateLaterThanToday } from '../../utils/validates/date.validation';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateChargeDto {
+  @ApiProperty({
+    example: 'customer_id',
+    description: 'The ID of the customer',
+  })
   @IsString()
   customerId: string;
 
+  @ApiProperty({ example: 123, description: 'The ID of the product' })
   @IsInt()
   productId: number;
 
+  @ApiProperty({ example: 10, description: 'The discount amount' })
   @IsNumber()
   discount: number;
 
+  @ApiProperty({ enum: PaymentType, description: 'The type of payment' })
   @IsEnum(PaymentType)
   paymentType: PaymentType;
 
+  @ApiProperty({ enum: PaymentStatus, description: 'The status of payment' })
   @IsEnum(PaymentStatus)
   @IsOptional()
   paymentStatus: PaymentStatus;
 
+  @ApiProperty({
+    example: '2023-07-31',
+    description: 'The due date of payment',
+  })
   @IsDateString()
   @Validate(IsDateLaterThanToday)
   dueDate: string;
