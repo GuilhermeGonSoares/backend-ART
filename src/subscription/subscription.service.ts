@@ -67,7 +67,13 @@ export class SubscriptionService {
 
   async list(): Promise<SubscriptionEntity[]> {
     return await this.repository.find({
-      where: { status: SubscriptionStatus.ACTIVE },
+      where: {
+        status: In([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING]),
+      },
+      relations: {
+        customer: true,
+        product: true,
+      },
     });
   }
 

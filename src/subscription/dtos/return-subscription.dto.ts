@@ -18,6 +18,18 @@ export class ReturnSubscriptionDto {
   productId: number;
 
   @ApiProperty({
+    example: 'GuiGo',
+    description: 'The name of the customer',
+  })
+  customerName: string;
+
+  @ApiProperty({
+    example: 'product name',
+    description: 'The name of the product',
+  })
+  productName: string;
+
+  @ApiProperty({
     example: SubscriptionStatus.PENDING,
     enum: SubscriptionStatus,
     description: 'The status of the subscription',
@@ -84,9 +96,15 @@ export class ReturnSubscriptionDto {
   constructor(subscription: SubscriptionEntity) {
     this.id = subscription.id;
     this.customerId = subscription.customer
-      ? undefined
-      : subscription.customerId;
-    this.productId = subscription.product ? undefined : subscription.productId;
+      ? subscription.customerId
+      : undefined;
+    this.productId = subscription.product ? subscription.productId : undefined;
+    this.customerName = subscription.customer
+      ? subscription.customer.name
+      : undefined;
+    this.productName = subscription.product
+      ? subscription.product.name
+      : undefined;
     this.status = subscription.status;
     this.alocatedDesigner = subscription.alocatedDesigner;
     this.alocatedAds = subscription.alocatedAds;
@@ -96,11 +114,5 @@ export class ReturnSubscriptionDto {
     this.preferredDueDate = subscription.preferredDueDate;
     this.initialDate = subscription.initialDate;
     this.finishedDate = subscription.finishedDate;
-    this.customer = subscription.customer
-      ? new ReturnCustomerDto(subscription.customer)
-      : undefined;
-    this.product = subscription.product
-      ? new ReturnProductDto(subscription.product)
-      : undefined;
   }
 }
