@@ -10,8 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { google, drive_v3, docs_v1 } from 'googleapis';
 import { GoogleDriveEntity } from './entities/google-drive.entity';
 import { Repository } from 'typeorm';
-import { createReadStream, createWriteStream } from 'fs';
-import * as path from 'path';
+import { createReadStream } from 'fs';
 import { CreateContractDto } from '../automations/dtos/create-contract.dto';
 import { variablesContract } from '../utils/variables-contract/variables';
 @Injectable()
@@ -93,29 +92,8 @@ export class GoogleDriveService {
         },
         { responseType: 'stream' },
       );
-      const fileName = `temp-${Date.now()}-arquivo.pdf`;
-      const destPath = path.resolve(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'uploads',
-        fileName,
-      );
-      const destFile = createWriteStream(destPath);
-      exportResponse.data.pipe(destFile);
-
-      return new Promise<string>((resolve, reject) => {
-        destFile.on('finish', () => {
-          this.logger.log('Arquivo exportado como PDF com sucesso!');
-          resolve(destPath);
-        });
-
-        destFile.on('error', (err) => {
-          this.logger.error('Erro ao salvar o arquivo PDF:', err);
-          reject(err);
-        });
-      });
+      this.logger.log('Arquivo exportado como PDF com sucesso!');
+      return exportResponse.data;
     } catch (error) {
       throw new BadRequestException(error);
     }

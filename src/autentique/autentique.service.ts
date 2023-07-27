@@ -7,9 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import FormData from 'form-data';
-import { createReadStream } from 'fs';
 import { ContractService } from '../contract/contract.service';
-import * as fs from 'fs';
 import { CreateContractDto } from '../automations/dtos/create-contract.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AutentiqueEntity } from './entities/autentique.entity';
@@ -166,7 +164,7 @@ export class AutentiqueService {
         await this.googleDriveService.copyAndReplaceVariablesInDocument(
           contract,
         );
-      const pathDestiny = await this.googleDriveService.exportToPdf(fileId);
+      const exportResponse = await this.googleDriveService.exportToPdf(fileId);
 
       const query = `mutation CreateDocumentMutation(
         $document: DocumentInput!,
@@ -223,7 +221,9 @@ export class AutentiqueService {
       const formData = new FormData({});
       formData.append('operations', operations);
       formData.append('map', map);
-      formData.append('file', createReadStream(pathDestiny));
+      formData.append('file', exportResponse, {
+        filename: `${Date.now()}-arquivo.pdf`,
+      });
 
       const headers = {
         Authorization: `Bearer ${this.AUTENTIQUE_TOKEN}`,
@@ -247,7 +247,7 @@ export class AutentiqueService {
       //   contract.customerCnpj,
       //   autentiqueContract.id,
       // );
-      fs.unlinkSync(pathDestiny);
+      // fs.unlinkSync(pathDestiny);
       this.logger.log(
         `Arquivo do usuário: ${contract.customerName} enviado para AUTENTIQUE com sucesso!`,
       );
