@@ -25,6 +25,13 @@ export class ChargeController {
     return new ReturnChargeDto(await this.chargeService.create(chargeDto));
   }
 
+  @Get()
+  async listCharge(): Promise<ReturnChargeDto[]> {
+    return (await this.chargeService.list()).map(
+      (charge) => new ReturnChargeDto(charge),
+    );
+  }
+
   @Get('customer/:customerId')
   async showChargeWithRelations(
     @Param('customerId') customerId: string,

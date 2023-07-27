@@ -58,6 +58,15 @@ export class ChargeService {
     });
   }
 
+  async list(): Promise<ChargeEntity[]> {
+    return await this.repository.find({
+      relations: {
+        customer: true,
+        product: true,
+      },
+    });
+  }
+
   async createChargeForSubscription(subscription: SubscriptionEntity) {
     const currentDate = new Date();
     const dueDay = String(subscription.preferredDueDate).padStart(2, '0');
