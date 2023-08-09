@@ -23,7 +23,7 @@ export class CustomerService {
   ) {}
 
   async create(createCustomerDto: CreateCustomerDto): Promise<CustomerEntity> {
-    const { cnpj, financeEmail, financePhone } = createCustomerDto;
+    const { cnpj, financeEmail, mainPhone } = createCustomerDto;
 
     const customers = await this.findCustomerByCnpjOREmail(cnpj, financeEmail);
 
@@ -33,7 +33,7 @@ export class CustomerService {
       );
     }
     try {
-      await this.whatsappService.existWhatsappNumber('55' + financePhone);
+      await this.whatsappService.existWhatsappNumber('55' + mainPhone);
       const customerAsaas = await this.asaasService.createClient(
         new CreateAsaasClientDto(createCustomerDto),
       );
@@ -81,7 +81,7 @@ export class CustomerService {
     updateCustomerDto: UpdateCustomerDto,
   ): Promise<CustomerEntity> {
     const customer = await this.findCustomerBy('cnpj', cnpj);
-    const { financeEmail, financePhone } = updateCustomerDto;
+    const { financeEmail, mainPhone } = updateCustomerDto;
 
     if (financeEmail && financeEmail !== customer.financeEmail) {
       const customer = await this.findCustomerBy(
@@ -96,7 +96,7 @@ export class CustomerService {
       }
     }
     try {
-      await this.whatsappService.existWhatsappNumber('55' + financePhone);
+      await this.whatsappService.existWhatsappNumber('55' + mainPhone);
       await this.asaasService.updateClient(
         new UpdateAsaasClientDto(customer, updateCustomerDto),
       );

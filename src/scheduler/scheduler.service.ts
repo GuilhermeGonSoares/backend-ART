@@ -7,6 +7,7 @@ import { SubscriptionStatus } from '../enums/subscription-status.enum';
 import { AutentiqueStatus } from '../enums/autentique-contract.enum';
 import { ProductType } from '../enums/product.enum';
 import { PaymentStatus } from '../enums/payment-status.enum';
+import { AutomationsService } from '../automations/automations.service';
 
 @Injectable()
 export class SchedulerService {
@@ -15,8 +16,42 @@ export class SchedulerService {
     private readonly chargeService: ChargeService,
     private readonly schedulerRegistry: SchedulerRegistry,
     private readonly autenteiqueService: AutentiqueService,
+    private readonly automationService: AutomationsService,
   ) {}
   private readonly logger = new Logger(SchedulerService.name);
+
+  @Cron('* * * * *', {
+    name: 'trigger-automation',
+    timeZone: 'America/Sao_Paulo',
+  })
+  async scheduleAutomation() {
+    const currentUTCDate = new Date(
+      new Date().getTime() - new Date().getTimezoneOffset() * 60000,
+    );
+    currentUTCDate.setUTCHours(0, 0, 0, 0);
+    this.logger.log(
+      `Searching for automation for ${String(
+        currentUTCDate.getUTCDate(),
+      ).padStart(2, '0')}/${String(currentUTCDate.getMonth()).padStart(
+        2,
+        '0',
+      )}/${currentUTCDate.getFullYear()}`,
+    );
+
+    const automations =
+      await this.automationService.findAutomationByInitialDate(currentUTCDate);
+
+    automations.map(async (automation) => {
+      await this.automationService.createAutomations({
+        id: automation.serviceId,
+        type: automation.type,
+        isAutentique: automation.isAutentique,
+        isCreateDrive: automation.isCreateDrive,
+        isCreateGroup: automation.isCreateGroup,
+      });
+      await this.automationService.delete(automation.id);
+    });
+  }
 
   @Cron('* * * * *', {
     name: 'create-charge-for-subscription',

@@ -12,6 +12,8 @@ import { AutomationsService } from './automations.service';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { ChargeModule } from '../charge/charge.module';
 import { AsaasModule } from '../asaas/asaas.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AutomationEntity } from './entities/automation.entity';
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { AsaasModule } from '../asaas/asaas.module';
     BullModule.registerQueue({
       name: 'automations',
     }),
+    TypeOrmModule.forFeature([AutomationEntity]),
     WhatsappModule,
     GoogleDriveModule,
     AsaasModule,

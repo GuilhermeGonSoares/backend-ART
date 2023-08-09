@@ -1,6 +1,14 @@
-import { IsBoolean, IsEnum, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  Validate,
+} from 'class-validator';
 import { ProductType } from '../../enums/product.enum';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsDateLaterThanToday } from '../../utils/validates/date.validation';
 
 export class CreateAutomationDto {
   @ApiProperty({ enum: ProductType, description: 'The type of product' })
@@ -10,6 +18,11 @@ export class CreateAutomationDto {
   @ApiProperty({ example: 123, description: 'The ID' })
   @IsNumber()
   id: number;
+
+  @IsDateString()
+  @Validate(IsDateLaterThanToday)
+  @IsOptional()
+  initialDate?: string;
 
   @ApiProperty({ example: true, description: 'Flag to create group' })
   @IsBoolean()

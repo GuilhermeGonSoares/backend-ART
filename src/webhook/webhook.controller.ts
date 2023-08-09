@@ -38,24 +38,24 @@ export class WebhookController {
       );
 
       if (contract.type === 'unique') {
-        const { customerId } = contract.charge;
+        const { customerId } = contract[0].charge;
         const customer = await this.customerService.findCustomerBy(
           'cnpj',
           customerId,
         );
 
         const chargeDto = new CreateChargeDto();
-        chargeDto.convertChargeToChargeDto(contract.charge);
+        chargeDto.convertChargeToChargeDto(contract[0].charge);
 
         const asaasCharge = await this.asaasService.createCharge(
           new CreateAsaasChargeDto(
             chargeDto,
             customer.asaasId,
-            contract.charge.price,
+            contract[0].charge.price,
           ),
         );
         chargeDto.asaasId = asaasCharge.id;
-        await this.chargeService.update(contract.charge.id, chargeDto);
+        await this.chargeService.update(contract[0].charge.id, chargeDto);
         this.logger.log(
           `Charge created for contract: ${payload.documento.nome}`,
         );

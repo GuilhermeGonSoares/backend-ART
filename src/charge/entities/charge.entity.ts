@@ -4,7 +4,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -79,7 +78,7 @@ export class ChargeEntity {
   @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
   product?: ProductEntity;
 
-  @OneToOne(() => AutentiqueEntity, (autentique) => autentique.subscription, {
+  @ManyToOne(() => AutentiqueEntity, (autentique) => autentique.subscription, {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })

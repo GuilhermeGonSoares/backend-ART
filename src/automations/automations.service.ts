@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProductType } from '../enums/product.enum';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { CreateContractDto } from './dtos/create-contract.dto';
@@ -18,6 +23,9 @@ import { SubscriptionEntity } from '../subscription/entities/subscription.entity
 import { UpdateChargeDto } from '../charge/dto/update-charge.dto';
 import { AutentiqueEntity } from '../autentique/entities/autentique.entity';
 import { AutentiqueStatus } from '../enums/autentique-contract.enum';
+import { Repository } from 'typeorm';
+import { AutomationEntity } from './entities/automation.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 type EntityDto = {
   product?: ProductEntity;
@@ -35,6 +43,8 @@ export class AutomationsService {
   private readonly logger = new Logger(AutomationsService.name);
 
   constructor(
+    @InjectRepository(AutomationEntity)
+    private readonly repository: Repository<AutomationEntity>,
     private readonly subscriptionService: SubscriptionService,
     private readonly autentiqueService: AutentiqueService,
     private readonly chargeService: ChargeService,
@@ -176,5 +186,54 @@ export class AutomationsService {
       contractId: entity.contractId,
       type: type,
     };
+  }
+
+  async saveAutomation(automationDto: CreateAutomationDto) {
+    const automation = await this.repository.findOne({
+      where: { serviceId: automationDto.id },
+    });
+
+    if (automation) {
+      return await this.repository.save({
+        ...automation,
+        serviceId: automationDto.id,
+        type: automationDto.type,
+        initialDate: automationDto.initialDate,
+        isCreateGroup: automationDto.isCreateGroup,
+        isAutentique: automationDto.isAutentique,
+        isCreateDrive: automationDto.isCreateDrive,
+      });
+    }
+
+    return await this.repository.save({
+      serviceId: automationDto.id,
+      type: automationDto.type,
+      initialDate: automationDto.initialDate,
+      isCreateGroup: automationDto.isCreateGroup,
+      isAutentique: automationDto.isAutentique,
+      isCreateDrive: automationDto.isCreateDrive,
+    });
+  }
+
+  async delete(id: number) {
+    const automation = await this.repository.findOne({ where: { id } });
+
+    if (!automation) {
+      throw new NotFoundException(`Not found automation with this ${id}`);
+    }
+
+    return await this.repository.remove(automation);
+  }
+
+  async findAutomationByInitialDate(
+    initialDate: Date,
+  ): Promise<AutomationEntity[]> {
+    return await this.repository
+      .createQueryBuilder('automation')
+      .where('automation.initialDate >= :startDate', { startDate: initialDate })
+      .andWhere('automation.initialDate < :endDate', {
+        endDate: new Date(initialDate.getTime() + 24 * 60 * 60 * 1000),
+      })
+      .getMany();
   }
 }

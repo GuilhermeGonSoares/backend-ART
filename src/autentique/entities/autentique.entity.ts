@@ -1,4 +1,10 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { AutentiqueStatus } from '../../enums/autentique-contract.enum';
 import { SubscriptionEntity } from '../../subscription/entities/subscription.entity';
 import { ChargeEntity } from '../../charge/entities/charge.entity';
@@ -30,6 +36,6 @@ export class AutentiqueEntity {
   @OneToOne(() => SubscriptionEntity, (subscription) => subscription.contract)
   subscription?: SubscriptionEntity;
 
-  @OneToOne(() => ChargeEntity, (charge) => charge.contract)
-  charge?: ChargeEntity;
+  @OneToMany(() => ChargeEntity, (charge) => charge.contract)
+  charge?: ChargeEntity[];
 }
