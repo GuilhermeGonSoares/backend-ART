@@ -21,8 +21,8 @@ export class ReturnChargeDto {
     this.id = charge.id;
     this.customerId = charge.customerId;
     this.productId = charge.product ? charge.productId : undefined;
-    this.customerName = charge.customer.name;
-    this.productName = charge.product.name;
+    this.customerName = charge.customer ? charge.customer.name : undefined;
+    this.productName = charge.product ? charge.product.name : undefined;
     this.price = charge.price;
     this.discount = charge.discount;
     this.finalPrice = charge.finalPrice;
