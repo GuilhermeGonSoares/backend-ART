@@ -15,6 +15,12 @@ export default class TypeOrmConfig {
       port: Number(configService.get('DB_PORT')),
       entities: ['dist/**/*.entity.js'],
       migrations: ['dist/db/migrations/*.js'],
+      ssl: true,
+      extra: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
     };
   }
 }
