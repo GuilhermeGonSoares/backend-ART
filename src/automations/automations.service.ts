@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { ProductType } from '../enums/product.enum';
 import { SubscriptionService } from '../subscription/subscription.service';
@@ -45,6 +47,7 @@ export class AutomationsService {
   constructor(
     @InjectRepository(AutomationEntity)
     private readonly repository: Repository<AutomationEntity>,
+    @Inject(forwardRef(() => SubscriptionService))
     private readonly subscriptionService: SubscriptionService,
     private readonly autentiqueService: AutentiqueService,
     private readonly chargeService: ChargeService,
@@ -235,5 +238,17 @@ export class AutomationsService {
         endDate: new Date(initialDate.getTime() + 24 * 60 * 60 * 1000),
       })
       .getMany();
+  }
+
+  async deleteAutomationByServiceId(serviceId: number) {
+    const automation = await this.repository.findOne({ where: { serviceId } });
+
+    if (!automation) {
+      throw new NotFoundException(
+        `Not found automation for this service id: ${serviceId}`,
+      );
+    }
+
+    return await this.repository.remove(automation);
   }
 }

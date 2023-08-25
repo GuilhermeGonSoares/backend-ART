@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SubscriptionEntity } from './entities/subscription.entity';
@@ -15,6 +17,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { SubscriptionStatus } from '../enums/subscription-status.enum';
 import { AutentiqueService } from '../autentique/autentique.service';
+import { AutomationsService } from '../automations/automations.service';
 @Injectable()
 export class SubscriptionService {
   constructor(
@@ -24,6 +27,8 @@ export class SubscriptionService {
     private readonly productService: ProductService,
     private readonly autentiqueService: AutentiqueService,
     @InjectQueue('automations') private readonly automationQueue: Queue,
+    @Inject(forwardRef(() => AutomationsService))
+    private readonly automationService: AutomationsService,
   ) {}
 
   async create(
@@ -222,6 +227,9 @@ export class SubscriptionService {
       false,
     );
     subscription.status = SubscriptionStatus.DISABLED;
+    await this.automationService
+      .deleteAutomationByServiceId(subscription.id)
+      .catch(() => undefined);
     return await this.repository.save({ ...subscription });
   }
 }

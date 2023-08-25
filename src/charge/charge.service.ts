@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChargeEntity } from './entities/charge.entity';
@@ -17,6 +19,7 @@ import { CreateAsaasChargeDto } from '../asaas/dtos/create-charge.dto';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { PaymentStatus } from '../enums/payment-status.enum';
+import { AutomationsService } from '../automations/automations.service';
 
 @Injectable()
 export class ChargeService {
@@ -27,6 +30,8 @@ export class ChargeService {
     private readonly productService: ProductService,
     private readonly asaasService: AsaasService,
     @InjectQueue('automations') private readonly automationQueue: Queue,
+    @Inject(forwardRef(() => AutomationsService))
+    private readonly automationService: AutomationsService,
   ) {}
 
   async create(chargeDto: CreateChargeDto): Promise<ChargeEntity> {
@@ -197,6 +202,9 @@ export class ChargeService {
 
   async deleteByAsaasId(asaasId: string) {
     const charge = await this.findChargeByAsaasId(asaasId);
+    await this.automationService
+      .deleteAutomationByServiceId(charge.id)
+      .catch(() => undefined);
     return await this.repository.remove(charge);
   }
 
@@ -206,7 +214,9 @@ export class ChargeService {
     if (charge.asaasId) {
       await this.asaasService.deleteCharge(charge.asaasId);
     }
-
+    await this.automationService
+      .deleteAutomationByServiceId(charge.id)
+      .catch(() => undefined);
     return await this.repository.remove(charge);
   }
 }

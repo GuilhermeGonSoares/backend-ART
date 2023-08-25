@@ -5,9 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SubscriptionEntity } from './entities/subscription.entity';
 import { CustomerModule } from '../customer/customer.module';
 import { ProductModule } from '../product/product.module';
-import { AutomationsModule } from '../automations/automations.module';
 import { ChargeModule } from '../charge/charge.module';
 import { AutentiqueModule } from '../autentique/autentique.module';
+import { AutomationsModule } from '../automations/automations.module';
 
 @Module({
   imports: [

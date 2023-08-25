@@ -8,12 +8,12 @@ import { AutentiqueModule } from '../autentique/autentique.module';
 import { GoogleDriveModule } from '../google-drive/google-drive.module';
 import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { AutomationsController } from './automations.controller';
-import { AutomationsService } from './automations.service';
 import { SubscriptionModule } from '../subscription/subscription.module';
-import { ChargeModule } from '../charge/charge.module';
 import { AsaasModule } from '../asaas/asaas.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AutomationEntity } from './entities/automation.entity';
+import { ChargeModule } from '../charge/charge.module';
+import { AutomationsService } from './automations.service';
 
 @Module({
   imports: [
@@ -38,16 +38,16 @@ import { AutomationEntity } from './entities/automation.entity';
     forwardRef(() => AutentiqueModule),
   ],
   providers: [
+    AutomationsService,
     CreateDriveConsumer,
     CreateGroupConsumer,
     CreateContractConsumer,
-    AutomationsService,
   ],
   exports: [
+    AutomationsService,
     CreateDriveConsumer,
     CreateGroupConsumer,
     CreateContractConsumer,
-    AutomationsService,
     BullModule.registerQueue(),
   ],
   controllers: [AutomationsController],
