@@ -96,7 +96,7 @@ export class CustomerService {
       }
     }
     try {
-      if (mainPhone) {
+      if (mainPhone && mainPhone !== customer.mainPhone) {
         await this.whatsappService.existWhatsappNumber('55' + mainPhone);
         await this.whatsappService.deleteGroupByCustomerId(cnpj);
       }
