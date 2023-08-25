@@ -85,7 +85,7 @@ export class SchedulerService {
     );
   }
 
-  @Cron('10 * * * *', {
+  @Cron('0 10 * * *', {
     name: 'find-contract-expired-rejected',
     timeZone: 'America/Sao_Paulo',
   })

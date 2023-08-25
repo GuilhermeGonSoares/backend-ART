@@ -80,30 +80,34 @@ export class WebhookController {
     const { event, payment } = payload;
     const updateChargeDto = new UpdateChargeDto();
 
-    if (event === 'PAYMENT_CONFIRMED') {
-      updateChargeDto.paymentStatus = PaymentStatus.CONFIRMED;
-      await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
-    } else if (event === 'PAYMENT_RECEIVED') {
-      updateChargeDto.paymentStatus = PaymentStatus.RECEIVED;
-      updateChargeDto.paymentDate = payment.paymentDate;
-      await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
-    } else if (event === 'PAYMENT_OVERDUE') {
-      updateChargeDto.paymentStatus = PaymentStatus.OVERDUE;
-      await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
-    } else if (event === 'PAYMENT_DELETED') {
-      //DELETAR COBRANÇA DO BANCO DE DADOS
-      // await this.chargeService.deleteByAsaasId(payment.id);
-    } else if (event === 'PAYMENT_UPDATED') {
-      updateChargeDto.dueDate = payment.dueDate;
-      updateChargeDto.paymentType =
-        payment.billingType === 'BOLETO'
-          ? PaymentType.BOLETO
-          : payment.billingType === 'PIX'
-          ? PaymentType.PIX
-          : undefined;
-      updateChargeDto.discount = payment.discount.value;
-      await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
-      // Alteração no vencimento ou valor de cobrança existente.
+    try {
+      if (event === 'PAYMENT_CONFIRMED') {
+        updateChargeDto.paymentStatus = PaymentStatus.CONFIRMED;
+        await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
+      } else if (event === 'PAYMENT_RECEIVED') {
+        updateChargeDto.paymentStatus = PaymentStatus.RECEIVED;
+        updateChargeDto.paymentDate = payment.paymentDate;
+        await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
+      } else if (event === 'PAYMENT_OVERDUE') {
+        updateChargeDto.paymentStatus = PaymentStatus.OVERDUE;
+        await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
+      } else if (event === 'PAYMENT_DELETED') {
+        // DELETAR COBRANÇA DO BANCO DE DADOS
+        await this.chargeService.deleteByAsaasId(payment.id);
+      } else if (event === 'PAYMENT_UPDATED') {
+        updateChargeDto.dueDate = payment.dueDate;
+        updateChargeDto.paymentType =
+          payment.billingType === 'BOLETO'
+            ? PaymentType.BOLETO
+            : payment.billingType === 'PIX'
+            ? PaymentType.PIX
+            : undefined;
+        updateChargeDto.discount = payment.discount.value;
+        await this.chargeService.updateByAsaasId(payment.id, updateChargeDto);
+        // Alteração no vencimento ou valor de cobrança existente.
+      }
+    } catch (error) {
+      this.logger.log(`This payment id ${payment.id} has already been deleted`);
     }
   }
 }

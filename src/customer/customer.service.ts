@@ -96,7 +96,10 @@ export class CustomerService {
       }
     }
     try {
-      await this.whatsappService.existWhatsappNumber('55' + mainPhone);
+      if (mainPhone) {
+        await this.whatsappService.existWhatsappNumber('55' + mainPhone);
+        await this.whatsappService.deleteGroupByCustomerId(cnpj);
+      }
       await this.asaasService.updateClient(
         new UpdateAsaasClientDto(customer, updateCustomerDto),
       );
@@ -109,6 +112,8 @@ export class CustomerService {
   async delete(cnpj: string): Promise<CustomerEntity> {
     const customer = await this.findCustomerBy('cnpj', cnpj);
     await this.asaasService.deleteClient(customer.asaasId);
+
+    await this.whatsappService.deleteGroupByCustomerId(cnpj);
 
     return await this.repository.remove(customer);
   }

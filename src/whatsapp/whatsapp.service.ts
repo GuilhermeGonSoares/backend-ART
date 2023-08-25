@@ -173,4 +173,10 @@ export class WhatsappService {
 
     return group;
   }
+
+  async deleteGroupByCustomerId(customerId: string) {
+    const group = await this.findGroupByCustomerId(customerId);
+
+    return this.repository.remove(group);
+  }
 }

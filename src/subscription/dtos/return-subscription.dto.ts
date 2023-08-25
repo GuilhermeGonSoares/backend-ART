@@ -3,6 +3,7 @@ import { ReturnCustomerDto } from '../../customer/dtos/return-customer.dto';
 import { SubscriptionStatus } from '../../enums/subscription-status.enum';
 import { ReturnProductDto } from '../../product/dtos/return-product.dto';
 import { SubscriptionEntity } from '../entities/subscription.entity';
+import { PaymentType } from '../../enums/payment.enum';
 
 export class ReturnSubscriptionDto {
   @ApiProperty({ example: 1, description: 'The ID of the subscription' })
@@ -47,6 +48,11 @@ export class ReturnSubscriptionDto {
     description: 'The ID of the allocated ads',
   })
   alocatedAds: string;
+
+  @ApiProperty({
+    example: 'PIX',
+  })
+  paymentType: PaymentType;
 
   @ApiProperty({ example: 9.99, description: 'The price of the subscription' })
   price: number;
@@ -106,6 +112,7 @@ export class ReturnSubscriptionDto {
       ? subscription.product.name
       : undefined;
     this.status = subscription.status;
+    this.paymentType = subscription.paymentType;
     this.alocatedDesigner = subscription.alocatedDesigner;
     this.alocatedAds = subscription.alocatedAds;
     this.price = subscription.price;
