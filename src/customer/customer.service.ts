@@ -98,13 +98,11 @@ export class CustomerService {
     try {
       if (mainPhone && mainPhone !== customer.mainPhone) {
         await this.whatsappService.existWhatsappNumber('55' + mainPhone);
-        await this.whatsappService
-          .deleteGroupByCustomerId(cnpj)
-          .catch(() => undefined);
+        await this.whatsappService.deleteGroupByCustomerId(cnpj);
       }
-      await this.asaasService.updateClient(
-        new UpdateAsaasClientDto(customer, updateCustomerDto),
-      );
+      await this.asaasService
+        .updateClient(new UpdateAsaasClientDto(customer, updateCustomerDto))
+        .catch(() => undefined);
       return await this.repository.save({ ...customer, ...updateCustomerDto });
     } catch (error) {
       throw new BadRequestException(error);
@@ -113,9 +111,12 @@ export class CustomerService {
 
   async delete(cnpj: string): Promise<CustomerEntity> {
     const customer = await this.findCustomerBy('cnpj', cnpj);
-    await this.asaasService.deleteClient(customer.asaasId);
 
-    await this.whatsappService.deleteGroupByCustomerId(cnpj);
+    const deleteAsaasPromise = this.asaasService.deleteClient(customer.asaasId);
+    const deleteWhatsappPromise =
+      this.whatsappService.deleteGroupByCustomerId(cnpj);
+
+    await Promise.all([deleteAsaasPromise, deleteWhatsappPromise]);
 
     return await this.repository.remove(customer);
   }

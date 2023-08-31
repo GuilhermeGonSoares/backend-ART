@@ -175,8 +175,14 @@ export class WhatsappService {
   }
 
   async deleteGroupByCustomerId(customerId: string) {
-    const group = await this.findGroupByCustomerId(customerId);
+    const group = await this.findGroupByCustomerId(customerId).catch(
+      () => undefined,
+    );
 
-    return this.repository.remove(group);
+    if (group) {
+      return await this.repository.remove(group);
+    }
+
+    return;
   }
 }
