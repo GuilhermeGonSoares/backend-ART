@@ -20,6 +20,7 @@ import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { PaymentStatus } from '../enums/payment-status.enum';
 import { AutomationsService } from '../automations/automations.service';
+import { UpdateAsaasChargeDto } from '../asaas/dtos/update-charge.dto';
 
 @Injectable()
 export class ChargeService {
@@ -192,6 +193,13 @@ export class ChargeService {
     }
     const finalPrice = price - (discount || charge.discount);
 
+    if (charge.asaasId) {
+      await this.asaasService.updateCharge(
+        charge.asaasId,
+        new UpdateAsaasChargeDto(charge, chargeDto),
+      );
+    }
+
     return await this.repository.save({
       ...charge,
       ...chargeDto,
@@ -202,6 +210,7 @@ export class ChargeService {
 
   async deleteByAsaasId(asaasId: string) {
     const charge = await this.findChargeByAsaasId(asaasId);
+    await this.asaasService.deleteCharge(asaasId);
     await this.automationService
       .deleteAutomationByServiceId(charge.id)
       .catch(() => undefined);

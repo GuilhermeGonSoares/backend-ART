@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { CreateAsaasClientDto } from './dtos/create-client.dto';
 import { UpdateAsaasClientDto } from './dtos/update-client.dto';
 import { CreateAsaasChargeDto } from './dtos/create-charge.dto';
+import { UpdateAsaasChargeDto } from './dtos/update-charge.dto';
 
 @Injectable()
 export class AsaasService {
@@ -104,6 +105,20 @@ export class AsaasService {
       const url = `${this.ASAAS_URL}/payments/${asaasId}`;
       await this.httpService.axiosRef.delete(url, { headers: this.headers });
     } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async updateCharge(asaasId: string, updateCharge: UpdateAsaasChargeDto) {
+    try {
+      const url = `${this.ASAAS_URL}/payments/${asaasId}`;
+      const data = { ...updateCharge };
+
+      return await this.httpService.axiosRef.post(url, data, {
+        headers: this.headers,
+      });
+    } catch (error) {
+      console.log(error);
       throw new BadRequestException(error);
     }
   }
