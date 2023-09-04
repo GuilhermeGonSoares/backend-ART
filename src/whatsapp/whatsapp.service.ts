@@ -85,8 +85,9 @@ export class WhatsappService {
       const response = await this.httpService.axiosRef.post(
         this.url + '/create-group',
         {
+          autoInvite: true,
           groupName: this.groupName + customerName,
-          phones: ['55' + phone],
+          phones: ['55' + phone, '553493022200'],
         },
       );
       const createGroup: ResponseCreateGroupDto = response.data;
