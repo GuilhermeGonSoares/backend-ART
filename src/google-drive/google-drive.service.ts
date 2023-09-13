@@ -23,7 +23,8 @@ export class GoogleDriveService {
   private readonly CLIENT_SECRET: string;
   private readonly REDIRECT_URI: string;
   private readonly REFRESH_TOKEN: string;
-  private readonly GOOGLE_DRIVE_KEY: string;
+  private readonly PARENT_FOLDER_CREATE_FOLDER: string;
+  private readonly PARENT_FOLDER_CONTRATO_CLIENT: string;
   private readonly logger = new Logger(GoogleDriveService.name);
 
   constructor(
@@ -35,7 +36,12 @@ export class GoogleDriveService {
     this.CLIENT_SECRET = configService.get('CLIENT_SECRET');
     this.REDIRECT_URI = configService.get('REDIRECT_URI');
     this.REFRESH_TOKEN = configService.get('REFRESH_TOKEN');
-    this.GOOGLE_DRIVE_KEY = configService.get('GOOGLE_DRIVE_KEY');
+    this.PARENT_FOLDER_CREATE_FOLDER = configService.get(
+      'PARENT_FOLDER_CREATE_FOLDER',
+    );
+    this.PARENT_FOLDER_CONTRATO_CLIENT = configService.get(
+      'PARENT_FOLDER_CONTRATO_CLIENT',
+    );
     this.createClient();
   }
   createClient() {
@@ -83,6 +89,7 @@ export class GoogleDriveService {
     }
   }
 
+  //AQUI NO EXPORT COLOCAR PARA SALVAR DENTRO DA PASTA CONTRATOS PDF O EXPORTPDF
   async exportToPdf(fileId: string) {
     try {
       const exportResponse = await this.driveClient.files.export(
@@ -138,6 +145,7 @@ export class GoogleDriveService {
         requestBody: {
           name: `${contract.name} - ${contract.customerName}`,
           mimeType: 'application/vnd.google-apps.document',
+          parents: [this.PARENT_FOLDER_CONTRATO_CLIENT],
         },
       });
       const convertedFileID = copyResponse.data.id;
@@ -212,6 +220,7 @@ export class GoogleDriveService {
       requestBody: {
         name: 'TFG - ' + folderName,
         mimeType: 'application/vnd.google-apps.folder',
+        parents: [this.PARENT_FOLDER_CREATE_FOLDER],
       },
       fields: 'id, name',
     });
