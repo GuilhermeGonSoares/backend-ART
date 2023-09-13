@@ -30,15 +30,6 @@ export class CreateSubscriptionDto {
   productId: number;
 
   @ApiProperty({
-    example: SubscriptionStatus.PENDING,
-    enum: SubscriptionStatus,
-    description: 'The status of the subscription',
-  })
-  @IsEnum(SubscriptionStatus)
-  @IsOptional()
-  status: SubscriptionStatus;
-
-  @ApiProperty({
     example: 10.0,
     description: 'The discount for the subscription',
   })

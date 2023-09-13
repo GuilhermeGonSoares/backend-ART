@@ -3,6 +3,7 @@
 /node_modules
 dist.zip
 .env
+build.zip
 
 # Logs
 logs

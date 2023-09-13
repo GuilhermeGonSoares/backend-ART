@@ -196,13 +196,18 @@ export class SubscriptionService {
     );
 
     if (newCustomerId && newCustomerId !== customerId) {
-      const [, subscription] = await Promise.all([
+      if (subscription.status == SubscriptionStatus.ACTIVE) {
+        throw new BadRequestException(
+          `To change the customerId of an active subscription, you need to create another one`,
+        );
+      }
+      const [, subscriptionActive] = await Promise.all([
         this.customerService.findCustomerBy('cnpj', newCustomerId),
         this.findActiveSubscriptionByCustomerId(newCustomerId, false).catch(
           () => undefined,
         ),
       ]);
-      if (subscription) {
+      if (subscriptionActive) {
         throw new BadRequestException(
           `This customer id: ${newCustomerId} already has an active subscription`,
         );
@@ -210,6 +215,11 @@ export class SubscriptionService {
     }
 
     if (productId && productId !== subscription.productId) {
+      if (subscription.status == SubscriptionStatus.ACTIVE) {
+        throw new BadRequestException(
+          `To change the product of an active subscription, you need to create another one`,
+        );
+      }
       const product = await this.productService.findProductBy('id', productId);
       if (product.type !== ProductType.Subscription) {
         throw new BadRequestException(`Product must be inscription type`);
