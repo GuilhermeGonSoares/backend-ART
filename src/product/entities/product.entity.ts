@@ -27,7 +27,7 @@ export class ProductEntity {
   @Column()
   description: string;
 
-  @Column()
+  @Column('numeric', { precision: 10, scale: 2 })
   price: number;
 
   @Column({ enum: ProductType })
