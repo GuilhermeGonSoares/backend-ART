@@ -31,13 +31,36 @@ export class ChargeEntity {
   @Column({ name: 'subscription_id', nullable: true })
   subscriptionId: number;
 
-  @Column()
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      from: (value: string) => parseFloat(value), // Converte a string para número
+      to: (value: number) => value.toFixed(2), // Converte o número de volta para string com 2 casas decimais
+    },
+  })
   price: number;
 
-  @Column({ default: 0 })
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      from: (value: string) => parseFloat(value), // Converte a string para número
+      to: (value: number) => value.toFixed(2), // Converte o número de volta para string com 2 casas decimais
+    },
+    default: 0,
+  })
   discount: number;
 
-  @Column({ name: 'final_price' })
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      from: (value: string) => parseFloat(value), // Converte a string para número
+      to: (value: number) => value.toFixed(2), // Converte o número de volta para string com 2 casas decimais
+    },
+    name: 'final_price',
+  })
   finalPrice: number;
 
   @Column({ name: 'contract_id', nullable: true })

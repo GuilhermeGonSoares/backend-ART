@@ -36,13 +36,37 @@ export class SubscriptionEntity {
   @Column({ nullable: true, name: 'alocated_ads' })
   alocatedAds: string;
 
-  @Column()
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      from: (value: string) => parseFloat(value), // Converte a string para número
+      to: (value: number) => value.toFixed(2), // Converte o número de volta para string com 2 casas decimais
+    },
+  })
   price: number;
 
-  @Column({ default: 0 })
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      from: (value: string) => parseFloat(value), // Converte a string para número
+      to: (value: number) => value.toFixed(2), // Converte o número de volta para string com 2 casas decimais
+    },
+    default: 0,
+  })
   discount: number;
 
-  @Column({ name: 'extra_costs', default: 0 })
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    transformer: {
+      from: (value: string) => parseFloat(value), // Converte a string para número
+      to: (value: number) => value.toFixed(2), // Converte o número de volta para string com 2 casas decimais
+    },
+    default: 0,
+    name: 'extra_costs',
+  })
   extraCosts: number;
 
   @Column({ name: 'preferred_due_date' })

@@ -43,8 +43,8 @@ export class ChargeService {
       this.customerService.findCustomerBy('cnpj', customerId),
       this.productService.findProductBy('id', productId),
     ]);
-
     const price = product.price;
+
     const finalPrice = product.price - discount;
 
     if (product.type !== ProductType.Unique) {
